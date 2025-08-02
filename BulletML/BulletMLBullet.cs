@@ -23,6 +23,11 @@ namespace BulletML
 
         public BulletMLActionRunner(BulletMLElement _actionElement, Dictionary<int, float> _parameters = null)
         {
+            if (_actionElement == null)
+            {
+                Debug.LogError("BulletMLActionRunner: actionElement is null");
+            }
+            
             m_ActionElement = _actionElement;
             m_CurrentIndex = 0;
             m_WaitFrames = 0;
@@ -162,7 +167,7 @@ namespace BulletML
                 return;
 
             // 変更情報を更新
-            UpdateChanges();
+            UpdateChangesInternal();
 
             // 非表示弾（シューター）は移動しない
             if (!m_IsVisible)
@@ -186,9 +191,17 @@ namespace BulletML
         }
 
         /// <summary>
-        /// 変更情報を更新する
+        /// 変更情報を更新する（テスト用public版）
         /// </summary>
-        private void UpdateChanges()
+        public void UpdateChanges(float _deltaTime)
+        {
+            UpdateChangesInternal();
+        }
+
+        /// <summary>
+        /// 変更情報を更新する（内部実装）
+        /// </summary>
+        private void UpdateChangesInternal()
         {
             // 方向変更の処理
             if (m_DirectionChange.IsActive)
@@ -249,6 +262,20 @@ namespace BulletML
             {
                 if (m_AccelInfo.IsCompleted)
                 {
+                    // 完了時は最大値を設定して無効化
+                    Vector3 finalAccel = new Vector3(
+                        m_AccelInfo.HorizontalAccel,
+                        m_AccelInfo.VerticalAccel,
+                        0f
+                    );
+                    
+                    // 座標系に応じて加速度を適用
+                    if (m_CoordinateSystem == CoordinateSystem.YZ)
+                    {
+                        finalAccel = new Vector3(0f, finalAccel.y, finalAccel.x);
+                    }
+                    
+                    m_Acceleration = finalAccel;
                     m_AccelInfo.IsActive = false;
                 }
                 else
@@ -259,11 +286,27 @@ namespace BulletML
                     // インクリメント後に完了判定を再チェック
                     if (m_AccelInfo.IsCompleted)
                     {
+                        // 完了時は最大値を設定して無効化
+                        Vector3 finalAccel = new Vector3(
+                            m_AccelInfo.HorizontalAccel,
+                            m_AccelInfo.VerticalAccel,
+                            0f
+                        );
+                        
+                        // 座標系に応じて加速度を適用
+                        if (m_CoordinateSystem == CoordinateSystem.YZ)
+                        {
+                            finalAccel = new Vector3(0f, finalAccel.y, finalAccel.x);
+                        }
+                        
+                        m_Acceleration = finalAccel;
                         m_AccelInfo.IsActive = false;
                     }
                     else
                     {
+                        // termフレームかけて徐々に加速度を上げていく（changeDirectionやchangeSpeedと同様）
                         float t = (float)m_AccelInfo.CurrentFrame / m_AccelInfo.Duration;
+                        
                         Vector3 currentAccel = new Vector3(
                             m_AccelInfo.HorizontalAccel * t,
                             m_AccelInfo.VerticalAccel * t,

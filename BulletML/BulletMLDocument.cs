@@ -104,5 +104,25 @@ namespace BulletML
         {
             return GetLabeledAction("top");
         }
+
+        /// <summary>
+        /// ルートレベルの最初のbullet要素を取得する
+        /// </summary>
+        public BulletMLElement GetTopBullet()
+        {
+            if (m_RootElement == null)
+                return null;
+
+            // ルート要素の子要素から最初のbullet要素を探す
+            foreach (var child in m_RootElement.Children)
+            {
+                if (child.ElementType == BulletMLElementType.bullet)
+                {
+                    return child;
+                }
+            }
+
+            return null;
+        }
     }
 }

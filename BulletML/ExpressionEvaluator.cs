@@ -45,6 +45,14 @@ namespace BulletML
         }
 
         /// <summary>
+        /// 現在のパラメータを取得する
+        /// </summary>
+        public Dictionary<int, float> GetParameters()
+        {
+            return new Dictionary<int, float>(m_Parameters);
+        }
+
+        /// <summary>
         /// 数式を評価する
         /// </summary>
         public float Evaluate(string _expression)

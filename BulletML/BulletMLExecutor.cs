@@ -14,6 +14,8 @@ namespace BulletML
         [SerializeField] private CoordinateSystem m_CoordinateSystem;
         [SerializeField] private float m_LastSequenceDirection;
         [SerializeField] private float m_LastSequenceSpeed;
+        [SerializeField] private float m_LastSequenceHorizontalAccel;
+        [SerializeField] private float m_LastSequenceVerticalAccel;
         [SerializeField] private float m_DefaultSpeed = 1f; // デフォルト速度
         
         /// <summary>
@@ -32,6 +34,8 @@ namespace BulletML
             m_CoordinateSystem = CoordinateSystem.XY;
             m_LastSequenceDirection = 0f;
             m_LastSequenceSpeed = 1f;
+            m_LastSequenceHorizontalAccel = 0f;
+            m_LastSequenceVerticalAccel = 0f;
         }
 
         /// <summary>
@@ -97,6 +101,17 @@ namespace BulletML
         public float GetDefaultSpeed()
         {
             return m_DefaultSpeed;
+        }
+
+        /// <summary>
+        /// sequence値をリセットする（テスト用）
+        /// </summary>
+        public void ResetSequenceValues()
+        {
+            m_LastSequenceDirection = 0f;
+            m_LastSequenceSpeed = 1f;
+            m_LastSequenceHorizontalAccel = 0f;
+            m_LastSequenceVerticalAccel = 0f;
         }
 
         /// <summary>
@@ -197,7 +212,7 @@ namespace BulletML
             // bulletの内容を適用
             if (actualBulletElement != null)
             {
-                ApplyBulletElement(actualBulletElement, newBullet);
+                ApplyBulletElementInternal(actualBulletElement, newBullet);
             }
 
             // シーケンス値を更新
@@ -303,9 +318,17 @@ namespace BulletML
         }
 
         /// <summary>
-        /// bullet要素を弾に適用する
+        /// bullet要素を弾に適用する（テスト用public版）
         /// </summary>
-        private void ApplyBulletElement(BulletMLElement _bulletElement, BulletMLBullet _bullet)
+        public void ApplyBulletElement(BulletMLElement _bulletElement, BulletMLBullet _bullet)
+        {
+            ApplyBulletElementInternal(_bulletElement, _bullet);
+        }
+
+        /// <summary>
+        /// bullet要素を弾に適用する（内部実装）
+        /// </summary>
+        private void ApplyBulletElementInternal(BulletMLElement _bulletElement, BulletMLBullet _bullet)
         {
             // direction要素があれば適用
             var directionElement = _bulletElement.GetChild(BulletMLElementType.direction);
@@ -386,6 +409,14 @@ namespace BulletML
 
             // 現在のコマンドを取得
             var actionElement = currentAction.ActionElement;
+            if (actionElement == null || actionElement.Children == null)
+            {
+                // アクション要素が無効な場合は完了扱い
+                currentAction.Finish();
+                _bullet.PopAction();
+                return _bullet.GetCurrentAction() != null;
+            }
+            
             if (currentAction.CurrentIndex >= actionElement.Children.Count)
             {
                 // アクション完了
@@ -416,6 +447,7 @@ namespace BulletML
         /// </summary>
         private bool ExecuteCommand(BulletMLElement _command, BulletMLBullet _bullet, BulletMLActionRunner _actionRunner)
         {
+            
             switch (_command.ElementType)
             {
                 case BulletMLElementType.wait:
@@ -429,6 +461,9 @@ namespace BulletML
 
                 case BulletMLElementType.fire:
                     return ExecuteFireCommandWithBullet(_command, _bullet);
+
+                case BulletMLElementType.fireRef:
+                    return ExecuteFireRefCommand(_command, _bullet, _actionRunner);
 
                 case BulletMLElementType.changeDirection:
                     return ExecuteChangeDirectionCommand(_command, _bullet, _actionRunner);
@@ -571,6 +606,56 @@ namespace BulletML
         }
 
         /// <summary>
+        /// fireRefコマンドを実行する
+        /// </summary>
+        private bool ExecuteFireRefCommand(BulletMLElement _fireRefElement, BulletMLBullet _bullet, BulletMLActionRunner _actionRunner)
+        {
+            string label = _fireRefElement.GetAttribute("label");
+            if (string.IsNullOrEmpty(label) || m_Document == null)
+            {
+                Debug.LogError("Invalid fireRef command");
+                return true;
+            }
+
+            var referencedFire = m_Document.GetLabeledFire(label);
+            if (referencedFire == null)
+            {
+                Debug.LogError($"Referenced fire not found: {label}");
+                return true;
+            }
+
+            // パラメータを設定
+            var paramElements = _fireRefElement.GetChildren(BulletMLElementType.param);
+            var parameters = new Dictionary<int, float>();
+            for (int i = 0; i < paramElements.Count; i++)
+            {
+                m_ExpressionEvaluator.SetParameters(_actionRunner.Parameters);
+                float paramValue = EvaluateExpression(paramElements[i].Value);
+                parameters[i + 1] = paramValue;
+            }
+
+            // 元のパラメータを保存
+            var originalParameters = m_ExpressionEvaluator.GetParameters();
+            
+            // 新しいパラメータを設定
+            m_ExpressionEvaluator.SetParameters(parameters);
+
+            // fire要素を実行
+            var newBullets = ExecuteFireCommand(referencedFire, _bullet);
+            
+            // 新しい弾をコールバック経由で通知
+            foreach (var newBullet in newBullets)
+            {
+                OnBulletCreated?.Invoke(newBullet);
+            }
+
+            // 元のパラメータを復元
+            m_ExpressionEvaluator.SetParameters(originalParameters);
+            
+            return true;
+        }
+
+        /// <summary>
         /// changeDirectionコマンドを実行する
         /// </summary>
         private bool ExecuteChangeDirectionCommand(BulletMLElement _changeDirectionElement, BulletMLBullet _bullet, BulletMLActionRunner _actionRunner)
@@ -671,6 +756,7 @@ namespace BulletML
 
             // 加速度を開始
             var accelInfo = _bullet.AccelInfo;
+            
             accelInfo.HorizontalAccel = horizontalAccel;
             accelInfo.VerticalAccel = verticalAccel;
             accelInfo.Duration = duration;
@@ -700,8 +786,22 @@ namespace BulletML
                     return currentComponent + value;
 
                 case AccelType.sequence:
-                    // TODO: sequence typeの実装
-                    return value;
+                    // 連続的に変化する加速度を計算
+                    float lastAccel = _isHorizontal ? m_LastSequenceHorizontalAccel : m_LastSequenceVerticalAccel;
+                    float newAccel = lastAccel + value;
+                    
+                    
+                    // 最後の値を更新
+                    if (_isHorizontal)
+                    {
+                        m_LastSequenceHorizontalAccel = newAccel;
+                    }
+                    else
+                    {
+                        m_LastSequenceVerticalAccel = newAccel;
+                    }
+                    
+                    return newAccel;
 
                 default:
                     return value;
