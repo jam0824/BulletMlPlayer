@@ -1,1 +1,8 @@
 *.meta
+/Library/
+/Temp/
+/Build/Android/
+/Build/iOS/
+/Logs/
+/ProjectSettings/
+/UserSettings/
