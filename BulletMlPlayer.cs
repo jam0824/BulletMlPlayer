@@ -51,6 +51,25 @@ public class BulletMlPlayer : MonoBehaviour
         return m_ListActiveBullets;
     }
 
+    /// <summary>
+    /// フレーム情報を表示する
+    /// </summary>
+    private void ShowFrameInfo()
+    {
+        float deltaTime = Time.deltaTime;
+        float unscaledDeltaTime = Time.unscaledDeltaTime;
+        float currentFrameRate = 1f / unscaledDeltaTime;
+        int targetFrameRate = Application.targetFrameRate;
+        
+        Debug.Log($"=== フレーム情報 ===");
+        Debug.Log($"deltaTime: {deltaTime:F6}秒 (前フレームからの実際の経過時間)");
+        Debug.Log($"unscaledDeltaTime: {unscaledDeltaTime:F6}秒 (タイムスケール影響なし)");
+        Debug.Log($"現在のフレームレート: {currentFrameRate:F1} FPS");
+        Debug.Log($"目標フレームレート: {targetFrameRate} FPS ({(targetFrameRate > 0 ? (1f/targetFrameRate).ToString("F6") : "制限なし")}秒/フレーム)");
+        Debug.Log($"TimeScale: {Time.timeScale}");
+        Debug.Log($"==============");
+    }
+
     void Start()
     {
         InitializeSystem();
@@ -64,6 +83,12 @@ public class BulletMlPlayer : MonoBehaviour
 
     void Update()
     {
+        // フレーム情報を表示（Fキー）
+        if (Input.GetKeyDown(KeyCode.F))
+        {
+            ShowFrameInfo();
+        }
+        
         UpdateBullets();
         UpdateBulletObjects();
         
@@ -368,14 +393,6 @@ public class BulletMlPlayer : MonoBehaviour
         if (_newBullet != null && _newBullet.IsActive)
         {
             AddBullet(_newBullet);
-            
-            if (m_EnableDebugLog)
-            {
-                Vector3 velocityVector = _newBullet.GetVelocityVector();
-                Debug.Log($"新しい弾を追加: 位置={_newBullet.Position}, 方向={_newBullet.Direction}度, 速度={_newBullet.Speed}");
-                Debug.Log($"  → 速度ベクトル: {velocityVector} (座標系: {m_CoordinateSystem})");
-                Debug.Log($"  → 期待される移動: X={velocityVector.x:F3}, Y={velocityVector.y:F3}, Z={velocityVector.z:F3}");
-            }
         }
     }
 

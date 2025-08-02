@@ -501,6 +501,53 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!1 &550125333
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 550125335}
+  - component: {fileID: 550125334}
+  m_Layer: 0
+  m_Name: GameManager
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!114 &550125334
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 550125333}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 2646a9ee89e179648ace080989594f5a, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  m_TargetFrameRate: 60
+  m_DisableVSync: 1
+  m_ShowFrameRateOnStart: 1
+--- !u!4 &550125335
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 550125333}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &623586447
 GameObject:
   m_ObjectHideFlags: 0
@@ -717,13 +764,14 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 7bd28be104cb03a4c9edc46ae0d93e37, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  m_BulletMLXml: {fileID: 4900000, guid: 308ab37b2a8732c4291f558b4eeab877, type: 3}
+  m_BulletMLXml: {fileID: 4900000, guid: 1b367896923a01d4792fb23ea38620c8, type: 3}
   m_CoordinateSystem: 1
   m_TargetTag: Player
   m_FallbackPlayerPosition: {x: 0, y: -3, z: -5}
   m_UseShooterOffset: 0
   m_ShooterOffset: {x: 0, y: 0, z: 0}
   m_RankValue: 0.5
+  m_DefaultSpeed: 1
   m_AutoStart: 1
   m_BulletPrefab: {fileID: 778076106}
   m_EnableDebugLog: 1
@@ -828,3 +876,4 @@ SceneRoots:
   - {fileID: 778076110}
   - {fileID: 471432356}
   - {fileID: 623586449}
+  - {fileID: 550125335}

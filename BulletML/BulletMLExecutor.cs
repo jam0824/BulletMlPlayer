@@ -138,7 +138,6 @@ namespace BulletML
                 else
                 {
                     direction = CalculateAngleFromVector(toTarget, m_CoordinateSystem);
-                    Debug.Log($"[ExecuteFireCommand] direction省略、自機狙いを使用: {direction}度");
                 }
             }
 
@@ -155,12 +154,10 @@ namespace BulletML
                 if (_sourceBullet.Speed <= 0f)
                 {
                     speed = m_DefaultSpeed; // デフォルト速度
-                    Debug.Log($"[ExecuteFireCommand] speed省略、デフォルト速度を使用: {speed}");
                 }
                 else
                 {
                     speed = _sourceBullet.Speed; // 親弾の速度を継承
-                    Debug.Log($"[ExecuteFireCommand] speed省略、親弾速度を継承: {speed}");
                 }
             }
 
@@ -195,9 +192,8 @@ namespace BulletML
             }
 
             // 弾を作成
-            Debug.Log($"[ExecuteFireCommand] 弾作成前: 座標系={m_CoordinateSystem}, 方向={direction}度, 速度={speed}");
             var newBullet = new BulletMLBullet(position, direction, speed, m_CoordinateSystem);
-
+            
             // bulletの内容を適用
             if (actualBulletElement != null)
             {
@@ -235,9 +231,6 @@ namespace BulletML
                     
                     float aimAngle = CalculateAngleFromVector(toTarget, m_CoordinateSystem);
                     float finalAngle = aimAngle + value;
-                    
-                    Debug.Log($"[AIM計算] 座標系:{m_CoordinateSystem}, toTarget:{toTarget}, aimAngle:{aimAngle}度, offset:{value}度, 最終角度:{finalAngle}度");
-                    
                     return finalAngle;
 
                 case DirectionType.absolute:
@@ -289,12 +282,10 @@ namespace BulletML
             {
                 case CoordinateSystem.XY:
                     angle = Mathf.Atan2(_vector.x, _vector.y) * Mathf.Rad2Deg;
-                    Debug.Log($"[角度計算] XY面: vector=({_vector.x:F2}, {_vector.y:F2}), Atan2({_vector.x:F2}, {_vector.y:F2}) = {angle:F2}度");
                     break;
 
                 case CoordinateSystem.YZ:
                     angle = Mathf.Atan2(_vector.z, _vector.y) * Mathf.Rad2Deg;
-                    Debug.Log($"[角度計算] YZ面: vector=({_vector.y:F2}, {_vector.z:F2}), Atan2({_vector.z:F2}, {_vector.y:F2}) = {angle:F2}度");
                     break;
 
                 default:
@@ -308,7 +299,6 @@ namespace BulletML
                 angle += 360f;
             }
             
-            Debug.Log($"[角度計算] 正規化後: {angle:F2}度 (0-360度範囲)");
             return angle;
         }
 
@@ -375,8 +365,11 @@ namespace BulletML
         {
             var currentAction = _bullet.GetCurrentAction();
             if (currentAction == null)
+            {
+                // Debug.Log($"[ExecuteCurrentAction] 弾にアクションなし: 位置={_bullet.Position}");
                 return false;
-
+            }
+            
             // wait中の場合
             if (currentAction.WaitFrames > 0)
             {
@@ -402,9 +395,11 @@ namespace BulletML
             }
 
             var currentCommand = actionElement.Children[currentAction.CurrentIndex];
-            currentAction.IncrementIndex();
 
             bool commandResult = ExecuteCommand(currentCommand, _bullet, currentAction);
+            
+            // コマンド実行後にインデックスを増加（waitの場合はWaitFrames設定後に増加）
+            currentAction.IncrementIndex();
             
             // コマンド実行後にアクションが完了状態になった場合、即座に処理
             if (currentAction.IsFinished)
@@ -466,6 +461,7 @@ namespace BulletML
             
             int waitFrames = Mathf.RoundToInt(EvaluateExpression(_waitElement.Value));
             _actionRunner.SetWaitFrames(waitFrames);
+            
             return true;
         }
 
@@ -488,7 +484,7 @@ namespace BulletML
 
             if (timesElement == null || actionElement == null)
             {
-                Debug.LogError("Invalid repeat command structure");
+                Debug.LogError("[ExecuteRepeatCommand] Invalid repeat command structure");
                 return true;
             }
 
@@ -510,7 +506,7 @@ namespace BulletML
                 var repeatActionRunner = new BulletMLActionRunner(actionElement, _actionRunner.Parameters);
                 _bullet.PushAction(repeatActionRunner);
             }
-
+            
             return true;
         }
 
