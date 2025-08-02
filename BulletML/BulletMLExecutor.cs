@@ -123,6 +123,24 @@ namespace BulletML
             {
                 direction = CalculateDirection(directionElement, _sourceBullet);
             }
+            else
+            {
+                // direction要素が省略された場合のデフォルト処理
+                // BulletML仕様：デフォルトは自機狙い（aim）
+                Vector3 toTarget = m_TargetPosition - _sourceBullet.Position;
+                
+                // ゼロベクトルの場合（同じ位置）はデフォルト方向を使用
+                if (toTarget.magnitude < 0.001f)
+                {
+                    Debug.LogWarning("fire direction省略: シューターとターゲットが同じ位置です。デフォルト方向を使用します。");
+                    direction = 0f; // デフォルト方向（上方向）
+                }
+                else
+                {
+                    direction = CalculateAngleFromVector(toTarget, m_CoordinateSystem);
+                    Debug.Log($"[ExecuteFireCommand] direction省略、自機狙いを使用: {direction}度");
+                }
+            }
 
             // speed要素を処理
             var speedElement = _fireElement.GetChild(BulletMLElementType.speed);
@@ -284,6 +302,13 @@ namespace BulletML
                     break;
             }
             
+            // 角度を0-360度の範囲に正規化
+            if (angle < 0f)
+            {
+                angle += 360f;
+            }
+            
+            Debug.Log($"[角度計算] 正規化後: {angle:F2}度 (0-360度範囲)");
             return angle;
         }
 

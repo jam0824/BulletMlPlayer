@@ -32,6 +32,9 @@ namespace BulletMLTests
 
             var document = m_Parser.Parse(xml);
             m_Executor.SetDocument(document);
+            
+            // ターゲット位置を設定しない（デフォルトのVector3.zero）
+            // シューター位置もVector3.zeroなので、同位置のフォールバック処理が動作する
 
             var topAction = document.GetTopAction();
             var sourceBullet = new BulletMLBullet(Vector3.zero, 0f, 1f);
@@ -43,8 +46,9 @@ namespace BulletMLTests
 
             // Assert
             Assert.AreEqual(1, newBullets.Count);
-            Assert.AreEqual(0f, newBullets[0].Direction, 0.001f); // 上方向（0度）
-            Debug.Log($"direction省略時の方向: {newBullets[0].Direction}度");
+            // BulletML仕様: direction省略=自機狙い、ただし同位置の場合はデフォルト方向（0度=上方向）
+            Assert.AreEqual(0f, newBullets[0].Direction, 0.001f); 
+            Debug.Log($"direction省略時の方向: {newBullets[0].Direction}度 (同位置フォールバック)");
         }
 
         [Test]
@@ -149,11 +153,11 @@ namespace BulletMLTests
 
             // Assert & Debug
             Debug.Log("=== 方向タイプ比較 ===");
-            Debug.Log($"direction省略: {bulletsNone[0].Direction}度 (期待値: 30度 - ソース弾の方向)");
+            Debug.Log($"direction省略: {bulletsNone[0].Direction}度 (期待値: 45度 - 自機狙い[BulletML仕様])");
             Debug.Log($"aim type: {bulletsAim[0].Direction}度 (期待値: 45度 - ターゲット方向)");
             Debug.Log($"relative type: {bulletsRelative[0].Direction}度 (期待値: 75度 - 30+45度)");
 
-            Assert.AreEqual(30f, bulletsNone[0].Direction, 0.001f); // ソース弾の方向
+            Assert.AreEqual(45f, bulletsNone[0].Direction, 0.001f); // BulletML仕様: direction省略=自機狙い
             Assert.AreEqual(45f, bulletsAim[0].Direction, 0.001f); // ターゲット方向
             Assert.AreEqual(75f, bulletsRelative[0].Direction, 0.001f); // 30 + 45
         }

@@ -34,6 +34,57 @@ namespace BulletMLTests
         }
 
         [Test]
+        public void ExecuteFireCommand_NoDirection_DefaultsToAim()
+        {
+            // Arrange
+            var fireElement = new BulletMLElement(BulletMLElementType.fire);
+            var bulletElement = new BulletMLElement(BulletMLElementType.bullet);
+            fireElement.AddChild(bulletElement);
+            
+            // 座標系をYZに設定
+            m_Executor.SetCoordinateSystem(CoordinateSystem.YZ);
+            
+            // シューターとターゲット位置を設定
+            var shooter = new BulletMLBullet(new Vector3(0f, 0f, 5f), 0f, 1f, CoordinateSystem.YZ, false);
+            m_Executor.SetTargetPosition(new Vector3(0f, 0f, -5f)); // プレイヤー位置
+            
+            // toTarget = (0,0,-5) - (0,0,5) = (0,0,-10)
+            // YZ面: Atan2(-10, 0) = -90度 = 270度（Z軸負方向）
+
+            // Act
+            var newBullets = m_Executor.ExecuteFireCommand(fireElement, shooter);
+
+            // Assert
+            Assert.AreEqual(1, newBullets.Count);
+            // YZ面でZ軸負方向（270度）になるはず
+            Assert.AreEqual(270f, newBullets[0].Direction, 1f); // 自機狙い方向
+        }
+
+        [Test]
+        public void ExecuteFireCommand_NoDirection_SamePosition_UsesDefault()
+        {
+            // Arrange
+            var fireElement = new BulletMLElement(BulletMLElementType.fire);
+            var bulletElement = new BulletMLElement(BulletMLElementType.bullet);
+            fireElement.AddChild(bulletElement);
+            
+            // 座標系をXYに設定
+            m_Executor.SetCoordinateSystem(CoordinateSystem.XY);
+            
+            // シューターとターゲットが同じ位置
+            var shooter = new BulletMLBullet(Vector3.zero, 0f, 1f, CoordinateSystem.XY, false);
+            m_Executor.SetTargetPosition(Vector3.zero); // 同じ位置
+
+            // Act
+            var newBullets = m_Executor.ExecuteFireCommand(fireElement, shooter);
+
+            // Assert
+            Assert.AreEqual(1, newBullets.Count);
+            // 同じ位置の場合はデフォルト方向（0度=上方向）
+            Assert.AreEqual(0f, newBullets[0].Direction, 0.001f);
+        }
+
+        [Test]
         public void ExecuteFireCommand_WithDirection_SetsBulletDirection()
         {
             // Arrange

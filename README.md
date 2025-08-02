@@ -85,7 +85,7 @@ void Update()
 
 | コマンド | 説明 | 例 |
 |---------|------|-----|
-| `<fire>` | 弾を発射 | `<fire><bullet/></fire>` |
+| `<fire>` | 弾を発射 | `<fire><bullet/></fire>` ※direction省略時は自機狙い |
 | `<repeat>` | アクションを繰り返し | `<repeat><times>10</times><action>...</action></repeat>` |
 | `<wait>` | 指定フレーム待機 | `<wait>30</wait>` |
 | `<vanish>` | 弾を消去 | `<vanish/>` |
@@ -110,6 +110,16 @@ void Update()
 | `YZ` | Y-縦, Z-前後 | 上（Y+） | 縦シューティング |
 
 ## 🎯 サンプル弾幕
+
+### 最も簡単な弾幕（プレイヤー狙い）
+```xml
+<action label="top">
+<fire>
+ <bullet/>
+</fire>
+</action>
+```
+**📍 重要**: direction要素を省略すると、**自動的にプレイヤーを狙う弾**になります（BulletML仕様）。
 
 ### 円形弾幕
 ```xml
