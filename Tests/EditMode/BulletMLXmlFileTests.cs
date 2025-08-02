@@ -283,7 +283,10 @@ namespace Tests
                 "sample03.xml",
                 "changeSpeed.xml",
                 "changeSpeedAdvanced.xml",
-                "sequenceSpeedTest.xml"
+                "sequenceSpeedTest.xml",
+                "changeDirection.xml",
+                "changeDirectionAdvanced.xml",
+                "sequenceDirectionTest.xml"
             };
 
             foreach (string fileName in expectedFiles)
@@ -291,6 +294,173 @@ namespace Tests
                 string filePath = Path.Combine(Application.dataPath, "Script", "xml", fileName);
                 Assert.IsTrue(File.Exists(filePath), $"XMLファイルが存在するべき: {fileName}");
             }
+        }
+
+        /// <summary>
+        /// changeDirection.xmlの読み込みとパースのテスト
+        /// </summary>
+        [Test]
+        public void ChangeDirection_LoadAndParse_Success()
+        {
+            // Arrange & Act
+            string xmlContent = LoadXmlFile("changeDirection.xml");
+            var document = m_Parser.Parse(xmlContent);
+
+            // Assert
+            Assert.IsNotNull(document, "changeDirection.xmlが正しくパースされるべき");
+            Assert.IsNotNull(document.RootElement, "ルート要素が存在するべき");
+            Assert.IsNotNull(document.GetTopAction(), "トップアクションが存在するべき");
+            
+            // 弾の定義が存在することを確認
+            var directionTest1 = document.GetLabeledBullet("directionTest1");
+            Assert.IsNotNull(directionTest1, "directionTest1弾が定義されているべき");
+        }
+
+        /// <summary>
+        /// changeDirection sequence型の累積変化テスト
+        /// </summary>
+        [Test]
+        public void ChangeDirection_SequenceType_CumulativeChange()
+        {
+            // Arrange
+            string xmlContent = LoadXmlFile("changeDirection.xml");
+            var document = m_Parser.Parse(xmlContent);
+            var bullet = document.GetLabeledBullet("directionTest4");
+            var topAction = bullet.GetChild(BulletMLElementType.action); // action要素
+
+            var testBullet = new BulletMLBullet(
+                Vector3.zero, 0f, 2.0f, CoordinateSystem.YZ, true
+            );
+
+            var actionRunner = new BulletMLActionRunner(topAction);
+            testBullet.PushAction(actionRunner);
+
+
+            int changeDirectionCount = 0;
+            float firstChangeTargetDirection = 0f;
+            float secondChangeTargetDirection = 0f;
+
+            // Act & Assert
+            for (int frame = 0; frame < 200; frame++)
+            {
+                m_Executor.ExecuteCurrentAction(testBullet);
+                testBullet.UpdateChanges(1f / 60f);
+
+                // changeDirectionコマンドの実行を検出
+                if (testBullet.DirectionChange.IsActive && testBullet.DirectionChange.CurrentFrame == 1)
+                {
+                    changeDirectionCount++;
+                    if (changeDirectionCount == 1)
+                    {
+                        // 1回目のchangeDirection: sequence型で+30度
+                        firstChangeTargetDirection = testBullet.DirectionChange.TargetValue;
+                        Debug.Log($"Frame {frame}: 1回目のchangeDirection、ターゲット方向: {firstChangeTargetDirection}");
+                        // 初期方向0度 + 30度 = 30度
+                        Assert.AreEqual(30f, firstChangeTargetDirection, 0.1f, "1回目のsequence changeDirection");
+                    }
+                    else if (changeDirectionCount == 2)
+                    {
+                        // 2回目のchangeDirection: sequence型で+45度（累積）
+                        secondChangeTargetDirection = testBullet.DirectionChange.TargetValue;
+                        Debug.Log($"Frame {frame}: 2回目のchangeDirection、ターゲット方向: {secondChangeTargetDirection}");
+                        // 前回結果30度 + 45度 = 75度
+                        Assert.AreEqual(75f, secondChangeTargetDirection, 0.1f, "sequence型でターゲット方向が累積されるべき");
+                        break;
+                    }
+                }
+            }
+
+            Assert.AreEqual(2, changeDirectionCount, "2回のchangeDirectionが実行されるべき");
+        }
+
+        /// <summary>
+        /// sequenceDirectionTest.xmlの詳細テスト
+        /// </summary>
+        [Test]
+        public void SequenceDirectionTest_DetailedTest_Success()
+        {
+            // Arrange
+            string xmlContent = LoadXmlFile("sequenceDirectionTest.xml");
+            var document = m_Parser.Parse(xmlContent);
+            var bullet = document.GetLabeledBullet("sequencePositive");
+            var topAction = bullet.GetChild(BulletMLElementType.action);
+
+            var testBullet = new BulletMLBullet(
+                Vector3.zero, 0f, 2.0f, CoordinateSystem.YZ, true
+            );
+
+            var actionRunner = new BulletMLActionRunner(topAction);
+            testBullet.PushAction(actionRunner);
+
+
+            List<float> targetDirections = new List<float>();
+
+            // Act
+            for (int frame = 0; frame < 250; frame++)
+            {
+                m_Executor.ExecuteCurrentAction(testBullet);
+                testBullet.UpdateChanges(1f / 60f);
+
+                // changeDirectionの開始フレームを検出
+                if (testBullet.DirectionChange.IsActive && testBullet.DirectionChange.CurrentFrame == 1)
+                {
+                    targetDirections.Add(testBullet.DirectionChange.TargetValue);
+                    Debug.Log($"Frame {frame}: changeDirection開始、ターゲット: {testBullet.DirectionChange.TargetValue}");
+                }
+            }
+
+            // Assert
+            Assert.AreEqual(3, targetDirections.Count, "3回のchangeDirectionが実行されるべき");
+            Assert.AreEqual(15f, targetDirections[0], 0.1f, "1回目: 0 + 15 = 15");
+            Assert.AreEqual(35f, targetDirections[1], 0.1f, "2回目: 15 + 20 = 35");
+            Assert.AreEqual(60f, targetDirections[2], 0.1f, "3回目: 35 + 25 = 60");
+        }
+
+        /// <summary>
+        /// changeDirectionAdvanced.xmlの複合機能テスト
+        /// </summary>
+        [Test]
+        public void ChangeDirectionAdvanced_ComplexFeatures_Success()
+        {
+            // Arrange
+            string xmlContent = LoadXmlFile("changeDirectionAdvanced.xml");
+            var document = m_Parser.Parse(xmlContent);
+            var bullet = document.GetLabeledBullet("fullComboTest");
+            var topAction = bullet.GetChild(BulletMLElementType.action);
+
+            var testBullet = new BulletMLBullet(
+                Vector3.zero, 0f, 2.0f, CoordinateSystem.YZ, true
+            );
+
+            var actionRunner = new BulletMLActionRunner(topAction);
+            testBullet.PushAction(actionRunner);
+
+
+            bool hasDirectionChange = false;
+            bool hasSpeedChange = false;
+            bool hasAccel = false;
+
+            // Act
+            for (int frame = 0; frame < 300; frame++)
+            {
+                m_Executor.ExecuteCurrentAction(testBullet);
+                testBullet.UpdateChanges(1f / 60f);
+
+                if (testBullet.DirectionChange.IsActive) hasDirectionChange = true;
+                if (testBullet.SpeedChange.IsActive) hasSpeedChange = true;
+                if (testBullet.AccelInfo.IsActive) hasAccel = true;
+
+                // 全ての機能が同時に動作することを確認
+                if (hasDirectionChange && hasSpeedChange && hasAccel)
+                {
+                    break;
+                }
+            }
+
+            // Assert
+            Assert.IsTrue(hasDirectionChange, "changeDirectionが実行されるべき");
+            Assert.IsTrue(hasSpeedChange, "changeSpeedが実行されるべき");
+            Assert.IsTrue(hasAccel, "accelが実行されるべき");
         }
 
         /// <summary>
@@ -302,7 +472,10 @@ namespace Tests
             string[] xmlFiles = {
                 "changeSpeed.xml",
                 "changeSpeedAdvanced.xml",
-                "sequenceSpeedTest.xml"
+                "sequenceSpeedTest.xml",
+                "changeDirection.xml",
+                "changeDirectionAdvanced.xml",
+                "sequenceDirectionTest.xml"
             };
 
             foreach (string fileName in xmlFiles)

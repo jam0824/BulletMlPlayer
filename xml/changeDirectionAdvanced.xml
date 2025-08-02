@@ -1,0 +1,243 @@
+<?xml version="1.0" ?>
+<bulletml type="vertical">
+
+<!-- 振り子型のchangeDirection -->
+<bullet label="pendulumDirection">
+  <action>
+    <wait>30</wait>
+    <!-- 右に振る -->
+    <changeDirection>
+      <direction type="relative">60</direction>
+      <term>40</term>
+    </changeDirection>
+    <wait>50</wait>
+    <!-- 左に振る -->
+    <changeDirection>
+      <direction type="relative">-120</direction>
+      <term>60</term>
+    </changeDirection>
+    <wait>70</wait>
+    <!-- また右に振る -->
+    <changeDirection>
+      <direction type="relative">120</direction>
+      <term>50</term>
+    </changeDirection>
+  </action>
+</bullet>
+
+<!-- 螺旋型のchangeDirection（sequence型連続使用） -->
+<bullet label="spiralDirection">
+  <action>
+    <wait>25</wait>
+    <repeat>
+      <times>8</times>
+      <action>
+        <changeDirection>
+          <direction type="sequence">45</direction>
+          <term>20</term>
+        </changeDirection>
+        <wait>25</wait>
+      </action>
+    </repeat>
+  </action>
+</bullet>
+
+<!-- changeDirection中にさらにchangeDirection -->
+<bullet label="nestedDirection">
+  <action>
+    <wait>20</wait>
+    <!-- 最初の変更開始 -->
+    <changeDirection>
+      <direction type="absolute">90</direction>
+      <term>80</term>
+    </changeDirection>
+    <wait>30</wait>
+    <!-- 途中で別の変更を重ねる -->
+    <changeDirection>
+      <direction type="relative">45</direction>
+      <term>40</term>
+    </changeDirection>
+    <wait>60</wait>
+    <!-- さらに追加 -->
+    <changeDirection>
+      <direction type="sequence">-30</direction>
+      <term>35</term>
+    </changeDirection>
+  </action>
+</bullet>
+
+<!-- 複雑な数式を使ったchangeDirection -->
+<bullet label="formulaDirection">
+  <action>
+    <wait>35</wait>
+    <!-- パラメータを使った複雑な方向計算 -->
+    <changeDirection>
+      <direction type="absolute">$rank*90+45</direction>
+      <term>50</term>
+    </changeDirection>
+    <wait>60</wait>
+    <changeDirection>
+      <direction type="relative">$rand*180-90</direction>
+      <term>40</term>
+    </changeDirection>
+  </action>
+</bullet>
+
+<!-- 全機能複合（changeDirection + changeSpeed + accel） -->
+<bullet label="fullComboTest">
+  <action>
+    <wait>40</wait>
+    <!-- フェーズ1: 全て同時開始 -->
+    <changeDirection>
+      <direction type="absolute">135</direction>
+      <term>60</term>
+    </changeDirection>
+    <changeSpeed>
+      <speed type="relative">2.0</speed>
+      <term>60</term>
+    </changeSpeed>
+    <accel>
+      <horizontal type="absolute">0.2</horizontal>
+      <vertical type="relative">-0.1</vertical>
+      <term>80</term>
+    </accel>
+    
+    <wait>80</wait>
+    
+    <!-- フェーズ2: sequence型で連続変化 -->
+    <changeDirection>
+      <direction type="sequence">-60</direction>
+      <term>45</term>
+    </changeDirection>
+    <changeSpeed>
+      <speed type="sequence">-1.0</speed>
+      <term>45</term>
+    </changeSpeed>
+    <accel>
+      <horizontal type="sequence">-0.15</horizontal>
+      <vertical type="sequence">0.25</vertical>
+      <term>50</term>
+    </accel>
+    
+    <wait>70</wait>
+    
+    <!-- フェーズ3: プレイヤー狙いに戻る -->
+    <changeDirection>
+      <direction type="aim">0</direction>
+      <term>40</term>
+    </changeDirection>
+    <changeSpeed>
+      <speed type="absolute">3.5</speed>
+      <term>40</term>
+    </changeSpeed>
+  </action>
+</bullet>
+
+<!-- 段階的加速とrotation -->
+<bullet label="acceleratingRotation">
+  <action>
+    <wait>30</wait>
+    <repeat>
+      <times>6</times>
+      <action>
+        <!-- 回転しながら加速 -->
+        <changeDirection>
+          <direction type="sequence">60</direction>
+          <term>25</term>
+        </changeDirection>
+        <changeSpeed>
+          <speed type="sequence">0.4</speed>
+          <term>25</term>
+        </changeSpeed>
+        <wait>30</wait>
+      </action>
+    </repeat>
+  </action>
+</bullet>
+
+<!-- 短時間での急激な方向変化 -->
+<bullet label="rapidChangeTest">
+  <action>
+    <wait>25</wait>
+    <!-- 1フレームごとに方向変化（極端テスト） -->
+    <changeDirection>
+      <direction type="sequence">15</direction>
+      <term>1</term>
+    </changeDirection>
+    <wait>2</wait>
+    <changeDirection>
+      <direction type="sequence">20</direction>
+      <term>1</term>
+    </changeDirection>
+    <wait>2</wait>
+    <changeDirection>
+      <direction type="sequence">-35</direction>
+      <term>1</term>
+    </changeDirection>
+    <wait>2</wait>
+    <changeDirection>
+      <direction type="sequence">50</direction>
+      <term>3</term>
+    </changeDirection>
+  </action>
+</bullet>
+
+<!-- メインアクション -->
+<action label="top">
+  <!-- 振り子型テスト -->
+  <fire>
+    <direction type="absolute">0</direction>
+    <speed>2.0</speed>
+    <bulletRef label="pendulumDirection"/>
+  </fire>
+  <wait>15</wait>
+  
+  <!-- 螺旋型テスト -->
+  <fire>
+    <direction type="absolute">45</direction>
+    <speed>1.8</speed>
+    <bulletRef label="spiralDirection"/>
+  </fire>
+  <wait>15</wait>
+  
+  <!-- ネストテスト -->
+  <fire>
+    <direction type="absolute">90</direction>
+    <speed>2.5</speed>
+    <bulletRef label="nestedDirection"/>
+  </fire>
+  <wait>15</wait>
+  
+  <!-- 数式テスト -->
+  <fire>
+    <direction type="absolute">135</direction>
+    <speed>2.2</speed>
+    <bulletRef label="formulaDirection"/>
+  </fire>
+  <wait>15</wait>
+  
+  <!-- 全機能複合テスト -->
+  <fire>
+    <direction type="absolute">180</direction>
+    <speed>1.5</speed>
+    <bulletRef label="fullComboTest"/>
+  </fire>
+  <wait>15</wait>
+  
+  <!-- 加速回転テスト -->
+  <fire>
+    <direction type="absolute">225</direction>
+    <speed>1.2</speed>
+    <bulletRef label="acceleratingRotation"/>
+  </fire>
+  <wait>15</wait>
+  
+  <!-- 急激変化テスト -->
+  <fire>
+    <direction type="absolute">270</direction>
+    <speed>3.0</speed>
+    <bulletRef label="rapidChangeTest"/>
+  </fire>
+</action>
+
+</bulletml>

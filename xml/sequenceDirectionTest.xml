@@ -1,0 +1,217 @@
+<?xml version="1.0" ?>
+<bulletml type="vertical">
+
+<!-- sequence型 基本テスト: +値連続 -->
+<bullet label="sequencePositive">
+  <action>
+    <wait>30</wait>
+    <changeDirection>
+      <direction type="sequence">15</direction>
+      <term>30</term>
+    </changeDirection>
+    <wait>40</wait>
+    <changeDirection>
+      <direction type="sequence">20</direction>
+      <term>35</term>
+    </changeDirection>
+    <wait>45</wait>
+    <changeDirection>
+      <direction type="sequence">25</direction>
+      <term>25</term>
+    </changeDirection>
+  </action>
+</bullet>
+
+<!-- sequence型 基本テスト: -値連続 -->
+<bullet label="sequenceNegative">
+  <action>
+    <wait>30</wait>
+    <changeDirection>
+      <direction type="sequence">-10</direction>
+      <term>30</term>
+    </changeDirection>
+    <wait>40</wait>
+    <changeDirection>
+      <direction type="sequence">-15</direction>
+      <term>30</term>
+    </changeDirection>
+    <wait>40</wait>
+    <changeDirection>
+      <direction type="sequence">-20</direction>
+      <term>30</term>
+    </changeDirection>
+  </action>
+</bullet>
+
+<!-- sequence型 混合テスト: +/-交互 -->
+<bullet label="sequenceAlternating">
+  <action>
+    <wait>25</wait>
+    <changeDirection>
+      <direction type="sequence">30</direction>
+      <term>25</term>
+    </changeDirection>
+    <wait>35</wait>
+    <changeDirection>
+      <direction type="sequence">-45</direction>
+      <term>30</term>
+    </changeDirection>
+    <wait>40</wait>
+    <changeDirection>
+      <direction type="sequence">60</direction>
+      <term>25</term>
+    </changeDirection>
+    <wait>35</wait>
+    <changeDirection>
+      <direction type="sequence">-75</direction>
+      <term>30</term>
+    </changeDirection>
+  </action>
+</bullet>
+
+<!-- sequence型 大幅変化テスト -->
+<bullet label="sequenceDramatic">
+  <action>
+    <wait>20</wait>
+    <changeDirection>
+      <direction type="sequence">90</direction>
+      <term>40</term>
+    </changeDirection>
+    <wait>50</wait>
+    <changeDirection>
+      <direction type="sequence">-180</direction>
+      <term>45</term>
+    </changeDirection>
+    <wait>55</wait>
+    <changeDirection>
+      <direction type="sequence">270</direction>
+      <term>35</term>
+    </changeDirection>
+  </action>
+</bullet>
+
+<!-- sequence型 微細変化テスト -->
+<bullet label="sequenceFine">
+  <action>
+    <wait>30</wait>
+    <changeDirection>
+      <direction type="sequence">2</direction>
+      <term>20</term>
+    </changeDirection>
+    <wait>25</wait>
+    <changeDirection>
+      <direction type="sequence">3</direction>
+      <term>20</term>
+    </changeDirection>
+    <wait>25</wait>
+    <changeDirection>
+      <direction type="sequence">-1</direction>
+      <term>20</term>
+    </changeDirection>
+    <wait>25</wait>
+    <changeDirection>
+      <direction type="sequence">4</direction>
+      <term>20</term>
+    </changeDirection>
+  </action>
+</bullet>
+
+<!-- sequence型 高速連続テスト -->
+<bullet label="sequenceRapid">
+  <action>
+    <wait>25</wait>
+    <repeat>
+      <times>10</times>
+      <action>
+        <changeDirection>
+          <direction type="sequence">18</direction>
+          <term>8</term>
+        </changeDirection>
+        <wait>10</wait>
+      </action>
+    </repeat>
+  </action>
+</bullet>
+
+<!-- 単発のabsolute/relativeとsequenceの比較 -->
+<bullet label="comparisonTest">
+  <action>
+    <wait>30</wait>
+    <!-- absolute型 -->
+    <changeDirection>
+      <direction type="absolute">45</direction>
+      <term>30</term>
+    </changeDirection>
+    <wait>40</wait>
+    <!-- relative型 -->
+    <changeDirection>
+      <direction type="relative">30</direction>
+      <term>30</term>
+    </changeDirection>
+    <wait>40</wait>
+    <!-- sequence型 -->
+    <changeDirection>
+      <direction type="sequence">30</direction>
+      <term>30</term>
+    </changeDirection>
+    <wait>40</wait>
+    <!-- もう一度sequence型（累積確認） -->
+    <changeDirection>
+      <direction type="sequence">30</direction>
+      <term>30</term>
+    </changeDirection>
+  </action>
+</bullet>
+
+<!-- メインアクション -->
+<action label="top">
+  <fire>
+    <direction type="absolute">0</direction>
+    <speed>2.0</speed>
+    <bulletRef label="sequencePositive"/>
+  </fire>
+  <wait>8</wait>
+  
+  <fire>
+    <direction type="absolute">30</direction>
+    <speed>2.0</speed>
+    <bulletRef label="sequenceNegative"/>
+  </fire>
+  <wait>8</wait>
+  
+  <fire>
+    <direction type="absolute">60</direction>
+    <speed>2.0</speed>
+    <bulletRef label="sequenceAlternating"/>
+  </fire>
+  <wait>8</wait>
+  
+  <fire>
+    <direction type="absolute">90</direction>
+    <speed>2.0</speed>
+    <bulletRef label="sequenceDramatic"/>
+  </fire>
+  <wait>8</wait>
+  
+  <fire>
+    <direction type="absolute">120</direction>
+    <speed>2.0</speed>
+    <bulletRef label="sequenceFine"/>
+  </fire>
+  <wait>8</wait>
+  
+  <fire>
+    <direction type="absolute">150</direction>
+    <speed>2.0</speed>
+    <bulletRef label="sequenceRapid"/>
+  </fire>
+  <wait>8</wait>
+  
+  <fire>
+    <direction type="absolute">180</direction>
+    <speed>2.0</speed>
+    <bulletRef label="comparisonTest"/>
+  </fire>
+</action>
+
+</bulletml>

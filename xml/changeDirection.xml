@@ -1,0 +1,213 @@
+<?xml version="1.0" ?>
+<bulletml type="vertical">
+
+<!-- 基本的なchangeDirection: absolute型 -->
+<bullet label="directionTest1">
+  <action>
+    <wait>30</wait>
+    <changeDirection>
+      <direction type="absolute">90</direction>
+      <term>60</term>
+    </changeDirection>
+  </action>
+</bullet>
+
+<!-- changeDirection: relative型 -->
+<bullet label="directionTest2">
+  <action>
+    <wait>30</wait>
+    <changeDirection>
+      <direction type="relative">45</direction>
+      <term>40</term>
+    </changeDirection>
+  </action>
+</bullet>
+
+<!-- changeDirection: aim型（プレイヤー狙い） -->
+<bullet label="directionTest3">
+  <action>
+    <wait>30</wait>
+    <changeDirection>
+      <direction type="aim">0</direction>
+      <term>50</term>
+    </changeDirection>
+  </action>
+</bullet>
+
+<!-- changeDirection: sequence型（連続変化） -->
+<bullet label="directionTest4">
+  <action>
+    <wait>30</wait>
+    <!-- 1回目: 現在方向 + 30度 -->
+    <changeDirection>
+      <direction type="sequence">30</direction>
+      <term>40</term>
+    </changeDirection>
+    <wait>60</wait>
+    <!-- 2回目: 前回結果 + 45度（累積） -->
+    <changeDirection>
+      <direction type="sequence">45</direction>
+      <term>30</term>
+    </changeDirection>
+  </action>
+</bullet>
+
+<!-- 複数回のchangeDirection（段階的変化） -->
+<bullet label="directionTest5">
+  <action>
+    <wait>20</wait>
+    <!-- 第1段階: 90度へ -->
+    <changeDirection>
+      <direction type="absolute">90</direction>
+      <term>30</term>
+    </changeDirection>
+    <wait>40</wait>
+    <!-- 第2段階: 相対的に-60度 -->
+    <changeDirection>
+      <direction type="relative">-60</direction>
+      <term>25</term>
+    </changeDirection>
+    <wait>35</wait>
+    <!-- 第3段階: プレイヤー狙い -->
+    <changeDirection>
+      <direction type="aim">0</direction>
+      <term>35</term>
+    </changeDirection>
+  </action>
+</bullet>
+
+<!-- changeDirection + changeSpeed の複合 -->
+<bullet label="directionSpeedTest">
+  <action>
+    <wait>25</wait>
+    <!-- 方向と速度を同時に変更 -->
+    <changeDirection>
+      <direction type="relative">90</direction>
+      <term>50</term>
+    </changeDirection>
+    <changeSpeed>
+      <speed type="absolute">4.0</speed>
+      <term>50</term>
+    </changeSpeed>
+    <wait>70</wait>
+    <!-- 再度変更 -->
+    <changeDirection>
+      <direction type="sequence">-45</direction>
+      <term>40</term>
+    </changeDirection>
+    <changeSpeed>
+      <speed type="relative">-1.5</speed>
+      <term>40</term>
+    </changeSpeed>
+  </action>
+</bullet>
+
+<!-- changeDirection + accel の複合 -->
+<bullet label="directionAccelTest">
+  <action>
+    <wait>30</wait>
+    <!-- 方向変更と加速度設定 -->
+    <changeDirection>
+      <direction type="absolute">135</direction>
+      <term>60</term>
+    </changeDirection>
+    <accel>
+      <horizontal type="absolute">0.15</horizontal>
+      <vertical type="sequence">0.1</vertical>
+      <term>80</term>
+    </accel>
+    <wait>100</wait>
+    <!-- sequence型での追加変更 -->
+    <changeDirection>
+      <direction type="sequence">90</direction>
+      <term>45</term>
+    </changeDirection>
+  </action>
+</bullet>
+
+<!-- 高速連続changeDirection -->
+<bullet label="rapidDirectionTest">
+  <action>
+    <wait>20</wait>
+    <!-- 短期間で連続変更 -->
+    <changeDirection>
+      <direction type="sequence">20</direction>
+      <term>15</term>
+    </changeDirection>
+    <wait>20</wait>
+    <changeDirection>
+      <direction type="sequence">25</direction>
+      <term>12</term>
+    </changeDirection>
+    <wait>15</wait>
+    <changeDirection>
+      <direction type="sequence">-30</direction>
+      <term>18</term>
+    </changeDirection>
+    <wait>25</wait>
+    <changeDirection>
+      <direction type="sequence">40</direction>
+      <term>20</term>
+    </changeDirection>
+  </action>
+</bullet>
+
+<!-- メインアクション -->
+<action label="top">
+  <fire>
+    <direction type="absolute">0</direction>
+    <speed>2.0</speed>
+    <bulletRef label="directionTest1"/>
+  </fire>
+  <wait>10</wait>
+  
+  <fire>
+    <direction type="absolute">30</direction>
+    <speed>2.5</speed>
+    <bulletRef label="directionTest2"/>
+  </fire>
+  <wait>10</wait>
+  
+  <fire>
+    <direction type="absolute">60</direction>
+    <speed>3.0</speed>
+    <bulletRef label="directionTest3"/>
+  </fire>
+  <wait>10</wait>
+  
+  <fire>
+    <direction type="absolute">90</direction>
+    <speed>2.2</speed>
+    <bulletRef label="directionTest4"/>
+  </fire>
+  <wait>10</wait>
+  
+  <fire>
+    <direction type="absolute">120</direction>
+    <speed>2.8</speed>
+    <bulletRef label="directionTest5"/>
+  </fire>
+  <wait>10</wait>
+  
+  <fire>
+    <direction type="absolute">150</direction>
+    <speed>2.3</speed>
+    <bulletRef label="directionSpeedTest"/>
+  </fire>
+  <wait>10</wait>
+  
+  <fire>
+    <direction type="absolute">180</direction>
+    <speed>2.6</speed>
+    <bulletRef label="directionAccelTest"/>
+  </fire>
+  <wait>10</wait>
+  
+  <fire>
+    <direction type="absolute">210</direction>
+    <speed>2.4</speed>
+    <bulletRef label="rapidDirectionTest"/>
+  </fire>
+</action>
+
+</bulletml>
