@@ -6,7 +6,7 @@
 テスト駆動開発（TDD）によって100%の信頼性を保証します。
 
 **テストフレームワーク**: Unity Test Framework  
-**テストカバレッジ**: 22個のテストクラス、150+個のテストケース  
+**テストカバレッジ**: 23個のテストクラス、160+個のテストケース  
 **更新日**: 2025年8月
 
 ---
@@ -35,7 +35,7 @@ graph TD
 
 | カテゴリ | テスト数 | 目的 |
 |---------|---------|------|
-| **EditModeテスト** | 150+ | ロジックの正確性検証 |
+| **EditModeテスト** | 160+ | ロジックの正確性検証 |
 | **PlayModeテスト** | 20+ | Unity統合環境での動作確認 |
 | **XMLファイルテスト** | 15+ | 実際のBulletMLファイルでの検証 |
 | **パフォーマンステスト** | 10+ | 性能・メモリ使用量測定 |
@@ -173,6 +173,24 @@ graph TD
 - 消滅タイミングの正確性
 - ランダム化の妥当性
 
+#### BulletMLProgearGrowBulletsTests.cs
+```csharp
+[Test] public void ProgearGrowBullets_SeedBulletPattern_RankDependent()
+[Test] public void ProgearGrowBullets_FanShapeDirection_CorrectAngles()
+[Test] public void ProgearGrowBullets_SeedSpeedTransition_DecelerationToStop()
+[Test] public void ProgearGrowBullets_ChildBulletGeneration_SequenceSpeed()
+[Test] public void ProgearGrowBullets_RankInfluence_BulletCount()
+[Test] public void ProgearGrowBullets_CompletePattern_TotalBulletCount()
+[Test] public void ProgearGrowBullets_SeedVanish_ProperCleanup()
+```
+
+**テスト対象:**
+- 成長する弾幕の実行（seed → 停止 → 爆発）
+- 扇状発射パターンとランク依存弾数
+- 親弾の減速・停止動作
+- 子弾のsequence速度増加
+- 適切な弾の消滅処理
+
 ---
 
 ## 🎮 PlayModeテスト（統合テスト）
@@ -209,6 +227,7 @@ graph TD
 | `accel.xml` | 加速度 | accelコマンド |
 | `[G_DARIUS]_homing_laser.xml` | ホーミング | 複雑な多段階パターン |
 | `[Guwange]_round_2_boss_circle_fire.xml` | 二段階円形 | 親弾・子弾システム |
+| `[Progear]_round_1_boss_grow_bullets.xml` | 成長弾幕 | 停止→爆発パターン |
 
 **テスト内容:**
 ```csharp
