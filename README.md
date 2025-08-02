@@ -320,12 +320,16 @@ Script/
 │   ├── BulletMLElement.cs          # 要素管理
 │   ├── BulletMLChangeInfo.cs       # 変更情報
 │   └── BulletMLEnums.cs            # 列挙型定義
-└── Tests/                          # ユニットテスト
-    └── EditMode/                   # ロジックテスト
-        ├── BulletMLParserTests.cs
-        ├── BulletMLExecutorTests.cs
-        ├── BulletMLBulletTests.cs
-        └── ...
+├── Tests/                          # ユニットテスト
+│   └── EditMode/                   # ロジックテスト
+│       ├── Tests.asmdef            # テスト用Assembly Definition
+│       ├── BulletMLParserTests.cs
+│       ├── BulletMLExecutorTests.cs
+│       ├── BulletMLBulletTests.cs
+│       ├── BulletMLIntegrationTests.cs
+│       ├── BulletMLCirclePatternTests.cs
+│       ├── BulletMLControlCommandTests.cs
+│       └── ...（19個のテストクラス）
 ```
 
 ## 🎮 実装例
