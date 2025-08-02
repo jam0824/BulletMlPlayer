@@ -15,17 +15,20 @@
 
 ### テストピラミッド
 
-```
-    ┌─────────────────┐
-    │   統合テスト     │  XMLファイル、パフォーマンス
-    │    (少数)       │
-    ├─────────────────┤
-    │   機能テスト     │  コンポーネント間の連携
-    │    (中程度)     │
-    ├─────────────────┤
-    │   単体テスト     │  個別クラス・メソッド
-    │    (多数)       │
-    └─────────────────┘
+```mermaid
+graph TD
+    subgraph Pyramid["🧪 テストピラミッド"]
+        Integration["🔗 統合テスト<br/>📦 XMLファイル、パフォーマンス<br/>📊 (少数)"]
+        Function["⚙️ 機能テスト<br/>🔄 コンポーネント間の連携<br/>📈 (中程度)"]
+        Unit["🔧 単体テスト<br/>🧱 個別クラス・メソッド<br/>📋 (多数)"]
+    end
+    
+    Integration --- Function
+    Function --- Unit
+    
+    style Integration fill:#ffcccb
+    style Function fill:#fff2cc
+    style Unit fill:#ccffcc
 ```
 
 ### テスト分類

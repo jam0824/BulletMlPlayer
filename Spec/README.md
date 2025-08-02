@@ -66,26 +66,33 @@
 
 ## 📊 ドキュメント関係図
 
-```
-    BulletML Project
-           │
-    ┌──────┴──────┐
-    │   README.md  │  ← プロジェクト概要・クイックスタート
-    └──────┬──────┘
-           │
-    ┌──────▼──────┐
-    │ Spec Folder │
-    └──────┬──────┘
-           │
-    ┌──────┴──────────────────────────────────┐
-    │                                         │
-┌───▼───┐  ┌─────▼─────┐  ┌────▼────┐  ┌────▼────┐
-│Spec   │  │BulletML   │  │Test     │  │Impl.    │
-│README │  │Spec       │  │Spec     │  │Details  │
-└───────┘  └───────────┘  └─────────┘  └─────────┘
-    │           │              │            │
-    ▼           ▼              ▼            ▼
- 案内役    基本仕様定義   テスト指針   実装ガイド
+```mermaid
+graph TD
+    Project["🎮 BulletML Project"]
+    
+    MainREADME["📖 README.md<br/>プロジェクト概要・クイックスタート"]
+    
+    SpecFolder["📚 Spec Folder"]
+    
+    SpecREADME["📋 Spec/README.md<br/>📍 案内役"]
+    BulletMLSpec["🎯 BulletML-Specification.md<br/>📐 基本仕様定義"]
+    TestSpec["🧪 Test-Specification.md<br/>🔍 テスト指針"]
+    ImplDetails["🏗️ Implementation-Details.md<br/>⚙️ 実装ガイド"]
+    
+    Project --> MainREADME
+    MainREADME --> SpecFolder
+    SpecFolder --> SpecREADME
+    SpecFolder --> BulletMLSpec
+    SpecFolder --> TestSpec
+    SpecFolder --> ImplDetails
+    
+    style Project fill:#e1f5fe
+    style MainREADME fill:#fff3e0
+    style SpecFolder fill:#f3e5f5
+    style SpecREADME fill:#e8f5e8
+    style BulletMLSpec fill:#fff8e1
+    style TestSpec fill:#f1f8e9
+    style ImplDetails fill:#fce4ec
 ```
 
 ---

@@ -15,34 +15,40 @@ Unityエンジンでの最適化された実装方法と技術的な詳細を記
 
 ### システム構成図
 
-```
-┌─────────────────────────────────────────────────────────────┐
-│                    BulletMlPlayer                          │
-│  ┌─────────────────┐    ┌─────────────────┐               │
-│  │ XMLファイル読み込み │    │ フレームレート制御 │               │
-│  └─────────────────┘    └─────────────────┘               │
-└─────────────────────────────────────────────────────────────┘
-                              │
-┌─────────────────────────────────────────────────────────────┐
-│                  BulletML Core System                      │
-│  ┌─────────────┐  ┌─────────────┐  ┌─────────────┐       │
-│  │ BulletML    │  │ BulletML    │  │ Expression  │       │
-│  │ Parser      │→ │ Executor    │→ │ Evaluator   │       │
-│  └─────────────┘  └─────────────┘  └─────────────┘       │
-│                                                            │
-│  ┌─────────────┐  ┌─────────────┐  ┌─────────────┐       │
-│  │ BulletML    │  │ BulletML    │  │ BulletML    │       │
-│  │ Document    │  │ Element     │  │ Bullet      │       │
-│  └─────────────┘  └─────────────┘  └─────────────┘       │
-└─────────────────────────────────────────────────────────────┘
-                              │
-┌─────────────────────────────────────────────────────────────┐
-│                    Unity Integration                       │
-│  ┌─────────────┐  ┌─────────────┐  ┌─────────────┐       │
-│  │ Object      │  │ Visual      │  │ Performance │       │
-│  │ Pooling     │  │ Rendering   │  │ Monitoring  │       │
-│  └─────────────┘  └─────────────┘  └─────────────┘       │
-└─────────────────────────────────────────────────────────────┘
+```mermaid
+graph TD
+    subgraph Unity["🎮 BulletMlPlayer (Unity Layer)"]
+        XML["📄 XMLファイル<br/>読み込み"]
+        Frame["⏱️ フレームレート<br/>制御"]
+    end
+    
+    subgraph Core["🔧 BulletML Core System"]
+        Parser["📖 BulletML<br/>Parser"]
+        Executor["⚙️ BulletML<br/>Executor"] 
+        Evaluator["🧮 Expression<br/>Evaluator"]
+        Document["📋 BulletML<br/>Document"]
+        Element["🔲 BulletML<br/>Element"]
+        Bullet["💫 BulletML<br/>Bullet"]
+    end
+    
+    subgraph Integration["🔗 Unity Integration"]
+        Pooling["♻️ Object<br/>Pooling"]
+        Rendering["🎨 Visual<br/>Rendering"]
+        Monitor["📊 Performance<br/>Monitoring"]
+    end
+    
+    Unity --> Core
+    Core --> Integration
+    
+    Parser --> Executor
+    Executor --> Evaluator
+    Parser --> Document
+    Document --> Element
+    Executor --> Bullet
+    
+    style Unity fill:#e1f5fe
+    style Core fill:#f3e5f5
+    style Integration fill:#e8f5e8
 ```
 
 ### 依存関係
@@ -52,15 +58,28 @@ Unityエンジンでの最適化された実装方法と技術的な詳細を記
 using UnityEngine;
 using System.Collections.Generic;
 using System.Xml;
+```
 
-// BulletML Namespace
-namespace BulletML
-{
-    // 内部依存関係
-    BulletMlPlayer → BulletMLExecutor → BulletMLDocument
-                                    → ExpressionEvaluator
-                                    → BulletMLBullet
-}
+```mermaid
+graph LR
+    subgraph BulletML["BulletML Namespace"]
+        Player["🎮 BulletMlPlayer"]
+        Executor["⚙️ BulletMLExecutor"]
+        Document["📋 BulletMLDocument"]
+        Evaluator["🧮 ExpressionEvaluator"]
+        Bullet["💫 BulletMLBullet"]
+    end
+    
+    Player --> Executor
+    Executor --> Document
+    Executor --> Evaluator
+    Executor --> Bullet
+    
+    style Player fill:#e3f2fd
+    style Executor fill:#f3e5f5
+    style Document fill:#e8f5e8
+    style Evaluator fill:#fff3e0
+    style Bullet fill:#fce4ec
 ```
 
 ---
@@ -136,10 +155,21 @@ public class BulletMLParser
 
 **解析プロセス:**
 
-```
-XML文字列 → XmlDocument → 再帰的要素解析 → BulletMLDocument
-    ↓           ↓              ↓              ↓
-入力検証   構文解析    要素ツリー構築   ラベルインデックス作成
+```mermaid
+graph LR
+    XML["📄 XML文字列<br/>📝 入力検証"]
+    XmlDoc["📋 XmlDocument<br/>🔍 構文解析"]
+    Parse["🌳 再帰的要素解析<br/>🏗️ 要素ツリー構築"]
+    BulletDoc["📚 BulletMLDocument<br/>🏷️ ラベルインデックス作成"]
+    
+    XML --> XmlDoc
+    XmlDoc --> Parse
+    Parse --> BulletDoc
+    
+    style XML fill:#fff3e0
+    style XmlDoc fill:#e8f5e8
+    style Parse fill:#f3e5f5
+    style BulletDoc fill:#e1f5fe
 ```
 
 ### 3. BulletMLExecutor.cs

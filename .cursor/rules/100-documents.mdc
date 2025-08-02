@@ -1,0 +1,10 @@
+---
+description:ドキュメント・データの位置
+globs:
+alwaysApply: true
+---
+- 参照すべき仕様 : /010-spec-bulletml.mdc
+- git管理している部分 : /
+- Testsフォルダの位置 : Assets/Script/Tests
+- メインのREADME.mdの位置 : /
+- 本プロジェクトの仕様書の位置 : /Spec
