@@ -123,7 +123,7 @@ namespace BulletML
         /// <summary>
         /// fireコマンドを実行する
         /// </summary>
-        public List<BulletMLBullet> ExecuteFireCommand(BulletMLElement _fireElement, BulletMLBullet _sourceBullet)
+        public List<BulletMLBullet> ExecuteFireCommand(BulletMLElement _fireElement, BulletMLBullet _sourceBullet, Dictionary<int, float> _overrideParameters = null)
         {
             var newBullets = new List<BulletMLBullet>();
 
@@ -142,7 +142,7 @@ namespace BulletML
             var directionElement = _fireElement.GetChild(BulletMLElementType.direction);
             if (directionElement != null)
             {
-                direction = CalculateDirection(directionElement, _sourceBullet);
+                direction = CalculateDirection(directionElement, _sourceBullet, false, _overrideParameters);
             }
             else
             {
@@ -166,7 +166,7 @@ namespace BulletML
             var speedElement = _fireElement.GetChild(BulletMLElementType.speed);
             if (speedElement != null)
             {
-                speed = CalculateSpeed(speedElement, _sourceBullet);
+                speed = CalculateSpeed(speedElement, _sourceBullet, false, _overrideParameters);
             }
             else
             {
@@ -218,7 +218,7 @@ namespace BulletML
             // bulletの内容を適用
             if (actualBulletElement != null)
             {
-                ApplyBulletElementInternal(actualBulletElement, newBullet);
+                ApplyBulletElementInternal(actualBulletElement, newBullet, _overrideParameters);
             }
 
             // シーケンス値を更新
@@ -232,9 +232,23 @@ namespace BulletML
         /// <summary>
         /// 方向を計算する
         /// </summary>
-        private float CalculateDirection(BulletMLElement _directionElement, BulletMLBullet _sourceBullet, bool _isInChangeDirection = false)
+        private float CalculateDirection(BulletMLElement _directionElement, BulletMLBullet _sourceBullet, bool _isInChangeDirection = false, Dictionary<int, float> _overrideParameters = null)
         {
-            float value = EvaluateExpression(_directionElement.Value);
+            // パラメータを使用してExpression評価
+            float value;
+            if (_overrideParameters != null && _overrideParameters.Count > 0)
+            {
+                // overrideParametersがある場合はそれを使用
+                var originalParameters = m_ExpressionEvaluator.GetParameters();
+                m_ExpressionEvaluator.SetParameters(_overrideParameters);
+                value = EvaluateExpression(_directionElement.Value);
+                m_ExpressionEvaluator.SetParameters(originalParameters);
+            }
+            else
+            {
+                // 弾のactionRunnerのパラメータを使用してExpression評価
+                value = EvaluateExpressionWithBulletParameters(_directionElement.Value, _sourceBullet);
+            }
             var directionType = _directionElement.GetDirectionType();
 
             switch (directionType)
@@ -270,8 +284,10 @@ namespace BulletML
                     }
                     else
                     {
-                        // それ以外では直前の弾を撃った方向が0の相対値
-                        return m_LastSequenceDirection + value;
+                        // fire要素内では累積的に方向を変化させる
+                        float newDirection = m_LastSequenceDirection + value;
+                        m_LastSequenceDirection = newDirection;
+                        return newDirection;
                     }
 
                 default:
@@ -282,9 +298,23 @@ namespace BulletML
         /// <summary>
         /// 速度を計算する
         /// </summary>
-        private float CalculateSpeed(BulletMLElement _speedElement, BulletMLBullet _sourceBullet, bool _isInChangeSpeed = false)
+        private float CalculateSpeed(BulletMLElement _speedElement, BulletMLBullet _sourceBullet, bool _isInChangeSpeed = false, Dictionary<int, float> _overrideParameters = null)
         {
-            float value = EvaluateExpression(_speedElement.Value);
+            // パラメータを使用してExpression評価
+            float value;
+            if (_overrideParameters != null && _overrideParameters.Count > 0)
+            {
+                // overrideParametersがある場合はそれを使用
+                var originalParameters = m_ExpressionEvaluator.GetParameters();
+                m_ExpressionEvaluator.SetParameters(_overrideParameters);
+                value = EvaluateExpression(_speedElement.Value);
+                m_ExpressionEvaluator.SetParameters(originalParameters);
+            }
+            else
+            {
+                // 弾のactionRunnerのパラメータを使用してExpression評価
+                value = EvaluateExpressionWithBulletParameters(_speedElement.Value, _sourceBullet);
+            }
             var speedType = _speedElement.GetSpeedType();
 
             switch (speedType)
@@ -357,39 +387,24 @@ namespace BulletML
         /// </summary>
         public void ApplyBulletElement(BulletMLElement _bulletElement, BulletMLBullet _bullet)
         {
-            ApplyBulletElementInternal(_bulletElement, _bullet);
+            ApplyBulletElementInternal(_bulletElement, _bullet, null);
         }
 
         /// <summary>
         /// bullet要素を弾に適用する（内部実装）
         /// </summary>
-        private void ApplyBulletElementInternal(BulletMLElement _bulletElement, BulletMLBullet _bullet)
+        private void ApplyBulletElementInternal(BulletMLElement _bulletElement, BulletMLBullet _bullet, Dictionary<int, float> _overrideParameters = null)
         {
-            // direction要素があれば適用
-            var directionElement = _bulletElement.GetChild(BulletMLElementType.direction);
-            if (directionElement != null)
-            {
-                float direction = CalculateDirection(directionElement, _bullet);
-                _bullet.SetDirection(direction);
-            }
-
-            // speed要素があれば適用
-            var speedElement = _bulletElement.GetChild(BulletMLElementType.speed);
-            if (speedElement != null)
-            {
-                float speed = CalculateSpeed(speedElement, _bullet);
-                _bullet.SetSpeed(speed);
-            }
-
-            // action要素があれば追加
+            // 1. 最初にaction要素とactionRef要素を追加（パラメータを持つactionRunnerを先にpush）
             var actionElements = _bulletElement.GetChildren(BulletMLElementType.action);
             foreach (var actionElement in actionElements)
             {
-                var actionRunner = new BulletMLActionRunner(actionElement);
+                // overrideParametersがあれば使用、なければ現在のExpressionEvaluatorのパラメータを使用
+                var parametersToUse = _overrideParameters ?? m_ExpressionEvaluator.GetParameters();
+                var actionRunner = new BulletMLActionRunner(actionElement, parametersToUse);
                 _bullet.PushAction(actionRunner);
             }
 
-            // actionRef要素があれば追加
             var actionRefElements = _bulletElement.GetChildren(BulletMLElementType.actionRef);
             foreach (var actionRefElement in actionRefElements)
             {
@@ -413,6 +428,22 @@ namespace BulletML
                     }
                 }
             }
+
+                            // 2. actionRunner追加後にdirection要素を適用
+                var directionElement = _bulletElement.GetChild(BulletMLElementType.direction);
+                if (directionElement != null)
+                {
+                    float direction = CalculateDirection(directionElement, _bullet, false, _overrideParameters);
+                    _bullet.SetDirection(direction);
+                }
+
+                // 3. actionRunner追加後にspeed要素を適用
+                var speedElement = _bulletElement.GetChild(BulletMLElementType.speed);
+                if (speedElement != null)
+                {
+                    float speed = CalculateSpeed(speedElement, _bullet, false, _overrideParameters);
+                    _bullet.SetSpeed(speed);
+                }
         }
 
         /// <summary>
@@ -428,6 +459,8 @@ namespace BulletML
                 return false;
             }
             
+            // Debug.Log($"[ExecuteCurrentAction] アクション実行中: CurrentIndex={currentAction.CurrentIndex}, IsFinished={currentAction.IsFinished}, ActionStackSize={_bullet.ActionStack.Count}");
+            
             // wait中の場合
             if (currentAction.WaitFrames > 0)
             {
@@ -438,6 +471,7 @@ namespace BulletML
             // アクションが完了している場合
             if (currentAction.IsFinished)
             {
+                // Debug.Log($"[ExecuteCurrentAction] アクション完了してpop: 残りActionStackSize={_bullet.ActionStack.Count - 1}");
                 _bullet.PopAction();
                 return _bullet.GetCurrentAction() != null;
             }
@@ -455,12 +489,14 @@ namespace BulletML
             if (currentAction.CurrentIndex >= actionElement.Children.Count)
             {
                 // アクション完了
+                // Debug.Log($"[ExecuteCurrentAction] アクション範囲外で完了: CurrentIndex={currentAction.CurrentIndex}, ChildrenCount={actionElement.Children.Count}");
                 currentAction.Finish();
                 _bullet.PopAction();
                 return _bullet.GetCurrentAction() != null;
             }
 
             var currentCommand = actionElement.Children[currentAction.CurrentIndex];
+            // Debug.Log($"[ExecuteCurrentAction] コマンド実行: {currentCommand.ElementType} (Index={currentAction.CurrentIndex})");
 
             bool commandResult = ExecuteCommand(currentCommand, _bullet, currentAction);
             
@@ -470,6 +506,7 @@ namespace BulletML
             // コマンド実行後にアクションが完了状態になった場合、即座に処理
             if (currentAction.IsFinished)
             {
+                // Debug.Log($"[ExecuteCurrentAction] コマンド実行後に完了してpop: 残りActionStackSize={_bullet.ActionStack.Count - 1}");
                 _bullet.PopAction();
                 return _bullet.GetCurrentAction() != null;
             }
@@ -562,6 +599,7 @@ namespace BulletML
             m_ExpressionEvaluator.SetParameters(_actionRunner.Parameters);
             
             int repeatCount = Mathf.RoundToInt(EvaluateExpression(timesElement.Value));
+            // Debug.Log($"[ExecuteRepeatCommand] repeat回数: {repeatCount}");
             
             if (repeatCount <= 0)
             {
@@ -575,6 +613,7 @@ namespace BulletML
             {
                 var repeatActionRunner = new BulletMLActionRunner(actionElement, _actionRunner.Parameters);
                 _bullet.PushAction(repeatActionRunner);
+                // Debug.Log($"[ExecuteRepeatCommand] actionRunner {i+1}/{repeatCount} をpush, 現在のスタックサイズ: {_bullet.ActionStack.Count}");
             }
             
             return true;
@@ -646,6 +685,8 @@ namespace BulletML
         private bool ExecuteFireRefCommand(BulletMLElement _fireRefElement, BulletMLBullet _bullet, BulletMLActionRunner _actionRunner)
         {
             string label = _fireRefElement.GetAttribute("label");
+            // Debug.Log($"[ExecuteFireRefCommand] fireRef '{label}' を実行開始");
+            
             if (string.IsNullOrEmpty(label) || m_Document == null)
             {
                 Debug.LogError("Invalid fireRef command");
@@ -675,8 +716,9 @@ namespace BulletML
             // 新しいパラメータを設定
             m_ExpressionEvaluator.SetParameters(parameters);
 
-            // fire要素を実行
-            var newBullets = ExecuteFireCommand(referencedFire, _bullet);
+            // fire要素を実行（fireRefのパラメータを引き継ぎ）
+            var newBullets = ExecuteFireCommand(referencedFire, _bullet, parameters);
+            // Debug.Log($"[ExecuteFireRefCommand] fireRef '{label}' で{newBullets.Count}個の弾を生成");
             
             // 新しい弾をコールバック経由で通知
             foreach (var newBullet in newBullets)
@@ -883,6 +925,34 @@ namespace BulletML
                 return 0f;
 
             return m_ExpressionEvaluator.Evaluate(_expression);
+        }
+
+        /// <summary>
+        /// 弾のactionRunnerのパラメータを使用してExpression評価する
+        /// </summary>
+        private float EvaluateExpressionWithBulletParameters(string _expression, BulletMLBullet _bullet)
+        {
+            if (string.IsNullOrEmpty(_expression))
+                return 0f;
+
+            // 現在のパラメータを保存
+            var originalParameters = m_ExpressionEvaluator.GetParameters();
+            
+            // 弾のactionRunnerのパラメータを取得
+            var currentAction = _bullet.GetCurrentAction();
+            if (currentAction?.Parameters != null && currentAction.Parameters.Count > 0)
+            {
+                // 弾のパラメータを一時的に設定
+                m_ExpressionEvaluator.SetParameters(currentAction.Parameters);
+            }
+            
+            // Expression評価
+            float result = m_ExpressionEvaluator.Evaluate(_expression);
+            
+            // 元のパラメータを復元
+            m_ExpressionEvaluator.SetParameters(originalParameters);
+            
+            return result;
         }
     }
 }
