@@ -1,0 +1,58 @@
+<?xml version="1.0" ?>
+<bulletml type="horizontal">
+
+<!-- 最もシンプルで分かりやすい加速テスト -->
+<bullet label="simpleRightAccel">
+  <action>
+    <!-- 最初は2秒間真上に移動 -->
+    <wait>120</wait>
+    <!-- その後、右方向に非常に強い加速度 -->
+    <accel>
+      <horizontal type="absolute">0.8</horizontal>
+      <term>300</term>
+    </accel>
+  </action>
+</bullet>
+
+<!-- 重力効果のシンプルテスト -->
+<bullet label="simpleGravity">
+  <action>
+    <!-- 上向きに勢いよく発射 -->
+    <changeSpeed>
+      <speed type="absolute">6.0</speed>
+      <term>1</term>
+    </changeSpeed>
+    <changeDirection>
+      <direction type="absolute">90</direction>
+      <term>1</term>
+    </changeDirection>
+    <wait>5</wait>
+    <!-- 重力のような強い下向き加速度 -->
+    <accel>
+      <vertical type="absolute">-0.3</vertical>
+      <term>500</term>
+    </accel>
+  </action>
+</bullet>
+
+<!-- メインアクション -->
+<action label="top">
+  
+  <!-- 右にカーブする弾 -->
+  <fire>
+    <direction type="absolute">90</direction>
+    <speed>2.0</speed>
+    <bulletRef label="simpleRightAccel"/>
+  </fire>
+  <wait>600</wait>
+  
+  <!-- 放物線を描く弾 -->
+  <fire>
+    <direction type="absolute">90</direction>
+    <speed>0.5</speed>
+    <bulletRef label="simpleGravity"/>
+  </fire>
+  
+</action>
+
+</bulletml>

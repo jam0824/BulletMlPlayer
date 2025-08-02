@@ -52,7 +52,7 @@ public class BulletMlPlayer : MonoBehaviour
     }
 
     /// <summary>
-    /// フレーム情報を表示する
+    /// フレーム情報を表示する（デバッグ用）
     /// </summary>
     private void ShowFrameInfo()
     {
@@ -62,12 +62,10 @@ public class BulletMlPlayer : MonoBehaviour
         int targetFrameRate = Application.targetFrameRate;
         
         Debug.Log($"=== フレーム情報 ===");
-        Debug.Log($"deltaTime: {deltaTime:F6}秒 (前フレームからの実際の経過時間)");
-        Debug.Log($"unscaledDeltaTime: {unscaledDeltaTime:F6}秒 (タイムスケール影響なし)");
+        Debug.Log($"deltaTime: {deltaTime:F6}秒");
         Debug.Log($"現在のフレームレート: {currentFrameRate:F1} FPS");
-        Debug.Log($"目標フレームレート: {targetFrameRate} FPS ({(targetFrameRate > 0 ? (1f/targetFrameRate).ToString("F6") : "制限なし")}秒/フレーム)");
-        Debug.Log($"TimeScale: {Time.timeScale}");
-        Debug.Log($"==============");
+        Debug.Log($"目標フレームレート: {targetFrameRate} FPS");
+        Debug.Log($"==================");
     }
 
     void Start()

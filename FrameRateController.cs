@@ -42,7 +42,12 @@ public class FrameRateController : MonoBehaviour
     {
         m_TargetFrameRate = _frameRate;
         Application.targetFrameRate = m_TargetFrameRate;
-        Debug.Log($"[FrameRateController] フレームレートを変更: {m_TargetFrameRate} FPS");
+        
+        // デバッグ用ログ（プロダクションでは不要な場合はコメントアウト）
+        if (m_ShowFrameRateOnStart)
+        {
+            Debug.Log($"[FrameRateController] フレームレートを変更: {m_TargetFrameRate} FPS");
+        }
     }
     
     /// <summary>
@@ -53,7 +58,12 @@ public class FrameRateController : MonoBehaviour
     {
         QualitySettings.vSyncCount = _enable ? 1 : 0;
         m_DisableVSync = !_enable;
-        Debug.Log($"[FrameRateController] VSync設定変更: {(_enable ? "有効" : "無効")}");
+        
+        // デバッグ用ログ（プロダクションでは不要な場合はコメントアウト）
+        if (m_ShowFrameRateOnStart)
+        {
+            Debug.Log($"[FrameRateController] VSync設定変更: {(_enable ? "有効" : "無効")}");
+        }
     }
     
     /// <summary>

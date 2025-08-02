@@ -657,7 +657,9 @@ namespace Tests
                 "sequenceDirectionTest.xml",
                 "accel.xml",
                 "accelAdvanced.xml",
-                "sequenceAccelTest.xml"
+                "sequenceAccelTest.xml",
+                "simpleAccel.xml",
+                "visibleYZ.xml"
             };
 
             foreach (string fileName in xmlFiles)

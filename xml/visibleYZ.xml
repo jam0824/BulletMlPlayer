@@ -1,0 +1,168 @@
+<?xml version="1.0" ?>
+<bulletml type="vertical">
+
+<!-- YZ座標系で見やすくするために、主にvertical（上下）の動きを重視 -->
+
+<!-- 純粋に上下の加速テスト -->
+<bullet label="pureVerticalAccel">
+  <action>
+    <!-- 最初は真上にゆっくり移動 -->
+    <wait>60</wait>
+    <!-- 強い下方向加速（重力効果、はっきり見える） -->
+    <accel>
+      <vertical type="absolute">-0.8</vertical>
+      <term>200</term>
+    </accel>
+  </action>
+</bullet>
+
+<!-- 上向き加速テスト -->
+<bullet label="upwardAccel">
+  <action>
+    <!-- 最初は下向きに移動 -->
+    <changeDirection>
+      <direction type="absolute">180</direction>
+      <term>1</term>
+    </changeDirection>
+    <wait>60</wait>
+    <!-- 上方向に強い加速 -->
+    <accel>
+      <vertical type="absolute">0.6</vertical>
+      <term>150</term>
+    </accel>
+  </action>
+</bullet>
+
+<!-- Y軸メインの振動（見やすい） -->
+<bullet label="verticalOscillation">
+  <action>
+    <!-- 最初は真上にゆっくり移動 -->
+    <wait>60</wait>
+    <!-- 下方向加速 -->
+    <accel>
+      <vertical type="absolute">-0.5</vertical>
+      <term>80</term>
+    </accel>
+    <wait>40</wait>
+    <!-- 上方向加速 -->
+    <accel>
+      <vertical type="absolute">0.7</vertical>
+      <term>80</term>
+    </accel>
+    <wait>40</wait>
+    <!-- 再び下方向加速 -->
+    <accel>
+      <vertical type="absolute">-0.6</vertical>
+      <term>80</term>
+    </accel>
+  </action>
+</bullet>
+
+<!-- 角度変化メイン（Z軸の変化を角度で表現） -->
+<bullet label="angleChangeDemo">
+  <action>
+    <!-- 最初は真上に移動 -->
+    <wait>60</wait>
+    <!-- 方向を変えながら移動（Z軸の変化を角度で表現） -->
+    <changeDirection>
+      <direction type="absolute">45</direction>
+      <term>60</term>
+    </changeDirection>
+    <wait>60</wait>
+    <changeDirection>
+      <direction type="absolute">135</direction>
+      <term>60</term>
+    </changeDirection>
+    <wait>60</wait>
+    <changeDirection>
+      <direction type="absolute">225</direction>
+      <term>60</term>
+    </changeDirection>
+    <wait>60</wait>
+    <changeDirection>
+      <direction type="absolute">315</direction>
+      <term>60</term>
+    </changeDirection>
+  </action>
+</bullet>
+
+<!-- 微細なZ軸加速（カメラの角度によっては見える） -->
+<bullet label="subtleHorizontalAccel">
+  <action>
+    <!-- 最初は真上にゆっくり移動 -->
+    <wait>60</wait>
+    <!-- 微細な前後加速（少しだけZ軸方向） -->
+    <accel>
+      <horizontal type="absolute">0.2</horizontal>
+      <term>200</term>
+    </accel>
+  </action>
+</bullet>
+
+<!-- Y軸とZ軸の組み合わせ（対角線的な動き） -->
+<bullet label="diagonalYZ">
+  <action>
+    <!-- 最初は真上にゆっくり移動 -->
+    <wait>60</wait>
+    <!-- Y軸とZ軸同時加速（対角線的な軌道） -->
+    <accel>
+      <horizontal type="absolute">0.4</horizontal>
+      <vertical type="absolute">-0.4</vertical>
+      <term>180</term>
+    </accel>
+  </action>
+</bullet>
+
+<!-- メインアクション -->
+<action label="top">
+  
+  <!-- 1. 純粋な重力効果（最も見やすい） -->
+  <fire>
+    <direction type="absolute">0</direction>
+    <speed>3.0</speed>
+    <bulletRef label="pureVerticalAccel"/>
+  </fire>
+  <wait>400</wait>
+  
+  <!-- 2. 上向き加速（下から上へのUターン） -->
+  <fire>
+    <direction type="absolute">0</direction>
+    <speed>1.5</speed>
+    <bulletRef label="upwardAccel"/>
+  </fire>
+  <wait>400</wait>
+  
+  <!-- 3. 垂直振動（上下の加速切り替え） -->
+  <fire>
+    <direction type="absolute">0</direction>
+    <speed>1.0</speed>
+    <bulletRef label="verticalOscillation"/>
+  </fire>
+  <wait>500</wait>
+  
+  <!-- 4. 角度変化デモ（円形に近い軌道） -->
+  <fire>
+    <direction type="absolute">0</direction>
+    <speed>2.0</speed>
+    <bulletRef label="angleChangeDemo"/>
+  </fire>
+  <wait>600</wait>
+  
+  <!-- 5. 微細なZ軸加速（見えるかテスト） -->
+  <fire>
+    <direction type="absolute">0</direction>
+    <speed>1.5</speed>
+    <bulletRef label="subtleHorizontalAccel"/>
+  </fire>
+  <wait>400</wait>
+  
+  <!-- 6. 対角線YZ（Y+Z同時） -->
+  <fire>
+    <direction type="absolute">0</direction>
+    <speed>1.0</speed>
+    <bulletRef label="diagonalYZ"/>
+  </fire>
+  
+</action>
+
+</bulletml>

@@ -74,6 +74,7 @@ namespace BulletML
         [SerializeField] private BulletMLChangeInfo m_DirectionChange;
         [SerializeField] private BulletMLChangeInfo m_SpeedChange;
         [SerializeField] private BulletMLAccelInfo m_AccelInfo;
+        [SerializeField] private Vector3 m_AccumulatedVelocity; // 加速度による累積速度変化
 
         public Vector3 Position => m_Position;
         public float Direction => m_Direction;
@@ -86,6 +87,7 @@ namespace BulletML
         public BulletMLChangeInfo DirectionChange => m_DirectionChange;
         public BulletMLChangeInfo SpeedChange => m_SpeedChange;
         public BulletMLAccelInfo AccelInfo => m_AccelInfo;
+        public Vector3 AccumulatedVelocity => m_AccumulatedVelocity;
 
         public BulletMLBullet(Vector3 _position, float _direction, float _speed, CoordinateSystem _coordinateSystem = CoordinateSystem.XY, bool _isVisible = true)
         {
@@ -100,6 +102,7 @@ namespace BulletML
             m_DirectionChange = new BulletMLChangeInfo();
             m_SpeedChange = new BulletMLChangeInfo();
             m_AccelInfo = new BulletMLAccelInfo();
+            m_AccumulatedVelocity = Vector3.zero;
         }
 
         /// <summary>
@@ -196,6 +199,22 @@ namespace BulletML
         public void UpdateChanges(float _deltaTime)
         {
             UpdateChangesInternal();
+            
+            // 非表示弾（シューター）は移動しない
+            if (!m_IsVisible)
+            {
+                return;
+            }
+
+            // 加速度による速度変化を累積（重力効果）
+            Vector3 velocityChange = m_Acceleration * _deltaTime;
+            m_AccumulatedVelocity += velocityChange;
+
+            // 現在の実効速度ベクトルを計算
+            Vector3 currentVelocity = GetVelocityVector();
+
+            // 位置を更新
+            m_Position += currentVelocity * _deltaTime;
         }
 
         /// <summary>
@@ -330,8 +349,9 @@ namespace BulletML
         /// </summary>
         public Vector3 GetVelocityVector()
         {
-            Vector3 velocity = ConvertAngleToVector(m_Direction, m_CoordinateSystem) * m_Speed;
-            return velocity;
+            Vector3 baseVelocity = ConvertAngleToVector(m_Direction, m_CoordinateSystem) * m_Speed;
+            Vector3 totalVelocity = baseVelocity + m_AccumulatedVelocity;
+            return totalVelocity;
         }
 
         /// <summary>

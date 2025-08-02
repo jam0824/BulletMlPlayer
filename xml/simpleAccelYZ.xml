@@ -1,0 +1,182 @@
+<?xml version="1.0" ?>
+<bulletml type="vertical">
+
+<!-- YZ座標系での分かりやすい加速テスト -->
+<!-- horizontal = Z軸方向（前後）、vertical = Y軸方向（上下） -->
+
+<!-- 前方向加速テスト -->
+<bullet label="forwardAccelDemo">
+  <action>
+    <!-- 最初は真上にゆっくり移動 -->
+    <wait>60</wait>
+    <!-- 前方向（Z+）に強い加速度を加える -->
+    <accel>
+      <horizontal type="absolute">0.5</horizontal>
+      <term>120</term>
+    </accel>
+  </action>
+</bullet>
+
+<!-- 下方向加速テスト（重力効果） -->
+<bullet label="downwardAccelDemo">
+  <action>
+    <!-- 最初は真上にゆっくり移動 -->
+    <wait>60</wait>
+    <!-- 下方向（Y-）に強い加速度を加える -->
+    <accel>
+      <vertical type="absolute">-0.4</vertical>
+      <term>150</term>
+    </accel>
+  </action>
+</bullet>
+
+<!-- 前下方向加速テスト -->
+<bullet label="forwardDownAccelDemo">
+  <action>
+    <!-- 最初は真上にゆっくり移動 -->
+    <wait>60</wait>
+    <!-- 前下方向に加速度を加える -->
+    <accel>
+      <horizontal type="absolute">0.4</horizontal>
+      <vertical type="absolute">-0.3</vertical>
+      <term>180</term>
+    </accel>
+  </action>
+</bullet>
+
+<!-- 前後振り子型加速テスト -->
+<bullet label="frontBackPendulumDemo">
+  <action>
+    <!-- 最初は真上にゆっくり移動 -->
+    <wait>60</wait>
+    <!-- 前方向に加速 -->
+    <accel>
+      <horizontal type="absolute">0.5</horizontal>
+      <term>60</term>
+    </accel>
+    <wait>30</wait>
+    <!-- 後方向に強い加速（方向転換） -->
+    <accel>
+      <horizontal type="absolute">-0.7</horizontal>
+      <term>80</term>
+    </accel>
+    <wait>40</wait>
+    <!-- 再び前方向に加速 -->
+    <accel>
+      <horizontal type="absolute">0.6</horizontal>
+      <term>60</term>
+    </accel>
+  </action>
+</bullet>
+
+<!-- 立体的な重力効果デモ -->
+<bullet label="threeDGravityDemo">
+  <action>
+    <!-- 初期速度を斜め上前方向に設定 -->
+    <changeSpeed>
+      <speed type="absolute">4.0</speed>
+      <term>1</term>
+    </changeSpeed>
+    <changeDirection>
+      <direction type="absolute">0</direction>
+      <term>1</term>
+    </changeDirection>
+    <wait>5</wait>
+    <!-- 前方向への初期加速 -->
+    <accel>
+      <horizontal type="absolute">0.1</horizontal>
+      <term>1</term>
+    </accel>
+    <wait>10</wait>
+    <!-- 重力のような下向き加速度 -->
+    <accel>
+      <vertical type="absolute">-0.25</vertical>
+      <term>300</term>
+    </accel>
+  </action>
+</bullet>
+
+<!-- 複雑な3D軌道テスト -->
+<bullet label="complex3DDemo">
+  <action>
+    <!-- 最初は真上にゆっくり移動 -->
+    <wait>60</wait>
+    <!-- フェーズ1: 前方向 -->
+    <accel>
+      <horizontal type="absolute">0.4</horizontal>
+      <term>40</term>
+    </accel>
+    <wait>20</wait>
+    <!-- フェーズ2: 上方向 -->
+    <accel>
+      <vertical type="absolute">0.3</vertical>
+      <term>40</term>
+    </accel>
+    <wait>20</wait>
+    <!-- フェーズ3: 後方向 -->
+    <accel>
+      <horizontal type="absolute">-0.5</horizontal>
+      <term>40</term>
+    </accel>
+    <wait>20</wait>
+    <!-- フェーズ4: 下方向 -->
+    <accel>
+      <vertical type="absolute">-0.4</vertical>
+      <term>40</term>
+    </accel>
+  </action>
+</bullet>
+
+<!-- メインアクション（1つずつ発射して違いが分かりやすい） -->
+<action label="top">
+  
+  <!-- 前方向加速デモ -->
+  <fire>
+    <direction type="absolute">0</direction>
+    <speed>1.5</speed>
+    <bulletRef label="forwardAccelDemo"/>
+  </fire>
+  <wait>300</wait>
+  
+  <!-- 下方向加速デモ -->
+  <fire>
+    <direction type="absolute">0</direction>
+    <speed>1.5</speed>
+    <bulletRef label="downwardAccelDemo"/>
+  </fire>
+  <wait>300</wait>
+  
+  <!-- 前下方向加速デモ -->
+  <fire>
+    <direction type="absolute">0</direction>
+    <speed>1.2</speed>
+    <bulletRef label="forwardDownAccelDemo"/>
+  </fire>
+  <wait>350</wait>
+  
+  <!-- 前後振り子デモ -->
+  <fire>
+    <direction type="absolute">0</direction>
+    <speed>1.0</speed>
+    <bulletRef label="frontBackPendulumDemo"/>
+  </fire>
+  <wait>400</wait>
+  
+  <!-- 3D重力効果デモ -->
+  <fire>
+    <direction type="absolute">0</direction>
+    <speed>0.5</speed>
+    <bulletRef label="threeDGravityDemo"/>
+  </fire>
+  <wait>400</wait>
+  
+  <!-- 複雑な3D軌道デモ -->
+  <fire>
+    <direction type="absolute">0</direction>
+    <speed>1.0</speed>
+    <bulletRef label="complex3DDemo"/>
+  </fire>
+  
+</action>
+
+</bulletml>
