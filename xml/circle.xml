@@ -1,0 +1,16 @@
+<?xml version="1.0" ?>
+<bulletml type="vertical">
+<action label="top">
+<repeat>
+<times>36</times>
+<action>
+ <fire>
+  <direction type="sequence">10</direction>
+  <speed>2</speed>
+  <bullet/>
+ </fire>
+ <wait>1</wait>
+</action>
+</repeat>
+</action>
+</bulletml>

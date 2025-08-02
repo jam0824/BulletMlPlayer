@@ -1,0 +1,8 @@
+<?xml version="1.0" ?>
+<bulletml xmlns="http://www.asahi-net.or.jp/~cs8k-cyu/bulletml">
+<action label="top">
+<fire>
+<bullet/>
+</fire>
+</action>
+</bulletml>
