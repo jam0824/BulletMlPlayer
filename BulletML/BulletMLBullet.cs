@@ -88,6 +88,7 @@ namespace BulletML
         public BulletMLChangeInfo SpeedChange => m_SpeedChange;
         public BulletMLAccelInfo AccelInfo => m_AccelInfo;
         public Vector3 AccumulatedVelocity => m_AccumulatedVelocity;
+        public int WaitFrames => GetCurrentAction()?.WaitFrames ?? 0;
 
         public BulletMLBullet(Vector3 _position, float _direction, float _speed, CoordinateSystem _coordinateSystem = CoordinateSystem.XY, bool _isVisible = true)
         {

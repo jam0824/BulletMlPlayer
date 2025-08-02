@@ -659,7 +659,8 @@ namespace Tests
                 "accelAdvanced.xml",
                 "sequenceAccelTest.xml",
                 "simpleAccel.xml",
-                "visibleYZ.xml"
+                "visibleYZ.xml",
+                "[1943]_rolling_fire.xml"
             };
 
             foreach (string fileName in xmlFiles)
