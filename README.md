@@ -6,11 +6,15 @@
 
 UnityでBulletML弾幕パターンを実行するための完全なシステムです。XMLで記述された弾幕パターンを読み込み、リアルタイムで美しい弾幕を生成できます。
 
+このプロジェクトは [BulletML公式仕様](https://www.asahi-net.or.jp/~cs8k-cyu/bulletml/) (ABA Games) に準拠して開発されています。
+
+📚 **詳細な技術仕様書は [Spec/README.md](./Spec/README.md) をご覧ください。**
+
 ![Demo](https://via.placeholder.com/600x300/4A90E2/FFFFFF?text=BulletML+Demo)
 
 ## 🌟 特徴
 
-- ✅ **完全なBulletML仕様準拠**: DTD/RELAX NG仕様書に基づく完全実装
+- ✅ **完全なBulletML仕様準拠**: [公式DTD/RELAX NG仕様書](https://www.asahi-net.or.jp/~cs8k-cyu/bulletml/)に基づく完全実装
 - ✅ **fireRef要素**: ラベル参照による弾発射（パラメータ渡し対応）
 - ✅ **sequence型完全対応**: changeSpeed/changeDirection内の連続変化
 - ✅ **2つの座標系**: XY面（水平シューティング）とYZ面（縦シューティング）
@@ -20,6 +24,7 @@ UnityでBulletML弾幕パターンを実行するための完全なシステム�
 - ✅ **XMLファイルテスト**: 実際のBulletMLファイルでの動作確認
 - ✅ **高性能**: オブジェクトプーリングによる最適化
 - ✅ **ビジュアルデバッグ**: Scene Viewでの弾道可視化
+- ✅ **複雑弾幕対応**: ホーミングレーザー等の高度なパターン実装
 
 ## 🚀 クイックスタート
 
@@ -249,6 +254,61 @@ void Update()
 </bullet>
 ```
 
+### ホーミングレーザー（G_DARIUS）
+```xml
+<!-- 高度な弾幕パターン：3段階速度変化+ホーミング -->
+<action label="top">
+<repeat><times>8</times>
+<action>
+ <!-- ランダム方向初弾 -->
+ <fire>
+  <direction>-60+$rand*120</direction>
+  <bulletRef label="hmgLsr"/>
+ </fire>
+ <!-- 連続8発 -->
+ <repeat><times>8</times>
+ <action>
+  <wait>1</wait>
+  <fire>
+   <direction type="sequence">0</direction>
+   <bulletRef label="hmgLsr"/>
+  </fire>
+ </action>
+ </repeat>
+ <wait>10</wait>
+</action>
+</repeat>
+</action>
+
+<bullet label="hmgLsr">
+<speed>2</speed>
+<!-- 速度変化：2→0.3→5 -->
+<action>
+<changeSpeed>
+ <speed>0.3</speed>
+ <term>30</term>
+</changeSpeed>
+<wait>100</wait>
+<changeSpeed>
+ <speed>5</speed>
+ <term>100</term>
+</changeSpeed>
+</action>
+<!-- ホーミング動作 -->
+<action>
+<repeat><times>9999</times>
+<action>
+ <changeDirection>
+  <direction type="aim">0</direction>
+  <term>60-$rank*20</term>
+ </changeDirection>
+ <wait>5</wait>
+</action>
+</repeat>
+</action>
+</bullet>
+```
+
 ## 🔧 API リファレンス
 
 ### BulletMlPlayer
@@ -318,10 +378,11 @@ public Vector3 GetVelocityVector()
 ```
 
 ### テストカバレッジ
-- **EditModeテスト**: 21個のテストクラス、140+個のテストケース
+- **EditModeテスト**: 22個のテストクラス、150+個のテストケース
 - **XMLファイルテスト**: 実際のBulletMLファイルでの動作確認
 - **TDD品質保証**: テスト駆動開発による完全な機能実装
 - **カバレッジ**: コア機能100%、新機能（fireRef、sequence型）100%
+- **ホーミングレーザーテスト**: 複雑な弾幕パターンの包括的検証
 
 ## 🎨 デバッグ機能
 
@@ -388,9 +449,20 @@ A: 以下を試してください：
 - 不要な弾を適切にVanishで消去
 ```
 
+### 詳細な技術情報
+より詳しい実装詳細やデバッグ方法については、[技術仕様書](./Spec/README.md)をご参照ください：
+- [BulletML仕様詳細](./Spec/BulletML-Specification.md)
+- [テスト仕様とデバッグ方法](./Spec/Test-Specification.md)  
+- [実装詳細とパフォーマンス最適化](./Spec/Implementation-Details.md)
+
 ## 📁 ファイル構造
 
 ```
+Spec/                               # 📚 技術仕様書
+├── README.md                       # 仕様書フォルダ案内
+├── BulletML-Specification.md       # BulletML基本仕様書
+├── Test-Specification.md           # テスト仕様書
+└── Implementation-Details.md       # 実装詳細仕様書
 Script/
 ├── BulletMlPlayer.cs               # メインプレイヤー
 ├── TestPlayer.cs                   # サンプルプレイヤー
@@ -405,7 +477,9 @@ Script/
 │   ├── aim01.xml                   # 自機狙い
 │   ├── changeSpeed.xml             # changeSpeed機能テスト
 │   ├── changeSpeedAdvanced.xml     # 複合機能テスト
-│   └── sequenceSpeedTest.xml       # sequence型詳細テスト
+│   ├── sequenceSpeedTest.xml       # sequence型詳細テスト
+│   ├── [G_DARIUS]_homing_laser.xml # ホーミングレーザー（3段階速度変化）
+│   └── [Guwange]_round_2_boss_circle_fire.xml # 二段階円形弾幕
 ├── BulletML/                       # BulletMLシステム
 │   ├── BulletMLParser.cs           # XML解析
 │   ├── BulletMLExecutor.cs         # コマンド実行（fireRef, sequence対応）
@@ -425,10 +499,12 @@ Script/
 │       ├── BulletMLSequenceTests.cs     # sequence型テスト
 │       ├── BulletMLXmlFileTests.cs      # XMLファイルテスト
 │       ├── BulletMLResourceTests.cs     # Resources使用テスト
+│       ├── BulletMLHomingLaserTests.cs  # ホーミングレーザーテスト
+│       ├── BulletMLGuwangeCircleFireTests.cs # 二段階円形弾幕テスト
 │       ├── BulletMLIntegrationTests.cs
 │       ├── BulletMLCirclePatternTests.cs
 │       ├── BulletMLControlCommandTests.cs
-│       └── ...（19個のテストクラス）
+│       └── ...（22個のテストクラス）
 ```
 
 ## 🎮 実装例
@@ -518,21 +594,22 @@ public class ShootingGameManager : MonoBehaviour
 
 ## 🙏 謝辞
 
-- [BulletML](http://www.asahi-net.or.jp/~cs8k-cyu/bulletml/) - 元のBulletML仕様
+- [BulletML公式サイト](https://www.asahi-net.or.jp/~cs8k-cyu/bulletml/) (ABA Games) - 元のBulletML仕様とDTD定義
 - [Unity Technologies](https://unity.com/) - Unity Engine
 - コミュニティの皆様のフィードバックとテスト
 
 ---
 
-**最終更新**: 2024年12月 - BulletML仕様完全準拠版
+**最終更新**: 2025年8月 - BulletML仕様完全準拠版
 
 ## 🏆 **開発成果**
 
 ✅ **fireRef機能実装完了** - ラベル参照による弾発射とパラメータ渡し  
 ✅ **sequence型完全対応** - changeSpeed/changeDirection内の連続変化  
-✅ **BulletML仕様準拠** - DTD/RELAX NG仕様書に基づく完全実装  
+✅ **BulletML仕様準拠** - [ABA Games公式仕様](https://www.asahi-net.or.jp/~cs8k-cyu/bulletml/)に基づく完全実装  
 ✅ **TDD品質保証** - テスト駆動開発による100%信頼性  
 ✅ **XMLファイルテスト** - 実際のBulletMLファイルでの動作確認  
 ✅ **フレームレート制御** - 60FPS対応による正確なタイミング  
+✅ **ホーミングレーザーテスト** - 3段階速度変化とホーミング動作の包括的検証  
 
 🎯 **Let's create amazing bullet patterns!** 🎯
