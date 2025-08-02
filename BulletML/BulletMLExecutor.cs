@@ -14,6 +14,7 @@ namespace BulletML
         [SerializeField] private CoordinateSystem m_CoordinateSystem;
         [SerializeField] private float m_LastSequenceDirection;
         [SerializeField] private float m_LastSequenceSpeed;
+        [SerializeField] private float m_DefaultSpeed = 1f; // デフォルト速度
         
         /// <summary>
         /// 新しい弾が生成された時のコールバック
@@ -83,6 +84,22 @@ namespace BulletML
         }
 
         /// <summary>
+        /// デフォルト速度を設定する
+        /// </summary>
+        public void SetDefaultSpeed(float _defaultSpeed)
+        {
+            m_DefaultSpeed = _defaultSpeed;
+        }
+
+        /// <summary>
+        /// デフォルト速度を取得する
+        /// </summary>
+        public float GetDefaultSpeed()
+        {
+            return m_DefaultSpeed;
+        }
+
+        /// <summary>
         /// fireコマンドを実行する
         /// </summary>
         public List<BulletMLBullet> ExecuteFireCommand(BulletMLElement _fireElement, BulletMLBullet _sourceBullet)
@@ -112,6 +129,21 @@ namespace BulletML
             if (speedElement != null)
             {
                 speed = CalculateSpeed(speedElement, _sourceBullet);
+            }
+            else
+            {
+                // speed要素が省略された場合のデフォルト処理
+                // 親弾（シューター）の速度が0の場合は、デフォルト速度を使用
+                if (_sourceBullet.Speed <= 0f)
+                {
+                    speed = m_DefaultSpeed; // デフォルト速度
+                    Debug.Log($"[ExecuteFireCommand] speed省略、デフォルト速度を使用: {speed}");
+                }
+                else
+                {
+                    speed = _sourceBullet.Speed; // 親弾の速度を継承
+                    Debug.Log($"[ExecuteFireCommand] speed省略、親弾速度を継承: {speed}");
+                }
             }
 
             // bullet要素またはbulletRef要素を処理
@@ -145,6 +177,7 @@ namespace BulletML
             }
 
             // 弾を作成
+            Debug.Log($"[ExecuteFireCommand] 弾作成前: 座標系={m_CoordinateSystem}, 方向={direction}度, 速度={speed}");
             var newBullet = new BulletMLBullet(position, direction, speed, m_CoordinateSystem);
 
             // bulletの内容を適用
@@ -174,8 +207,20 @@ namespace BulletML
                 case DirectionType.aim:
                     // 自機を狙う方向を計算
                     Vector3 toTarget = m_TargetPosition - _sourceBullet.Position;
+                    
+                    // ゼロベクトルの場合（同じ位置）はデフォルト方向を使用
+                    if (toTarget.magnitude < 0.001f)
+                    {
+                        Debug.LogWarning("aim direction: シューターとターゲットが同じ位置です。デフォルト方向を使用します。");
+                        return value; // デフォルト方向（通常は0度=上方向）
+                    }
+                    
                     float aimAngle = CalculateAngleFromVector(toTarget, m_CoordinateSystem);
-                    return aimAngle + value;
+                    float finalAngle = aimAngle + value;
+                    
+                    Debug.Log($"[AIM計算] 座標系:{m_CoordinateSystem}, toTarget:{toTarget}, aimAngle:{aimAngle}度, offset:{value}度, 最終角度:{finalAngle}度");
+                    
+                    return finalAngle;
 
                 case DirectionType.absolute:
                     return value;
@@ -220,17 +265,26 @@ namespace BulletML
         /// </summary>
         private float CalculateAngleFromVector(Vector3 _vector, CoordinateSystem _coordinateSystem)
         {
+            float angle = 0f;
+            
             switch (_coordinateSystem)
             {
                 case CoordinateSystem.XY:
-                    return Mathf.Atan2(_vector.x, _vector.y) * Mathf.Rad2Deg;
+                    angle = Mathf.Atan2(_vector.x, _vector.y) * Mathf.Rad2Deg;
+                    Debug.Log($"[角度計算] XY面: vector=({_vector.x:F2}, {_vector.y:F2}), Atan2({_vector.x:F2}, {_vector.y:F2}) = {angle:F2}度");
+                    break;
 
                 case CoordinateSystem.YZ:
-                    return Mathf.Atan2(_vector.y, _vector.z) * Mathf.Rad2Deg;
+                    angle = Mathf.Atan2(_vector.z, _vector.y) * Mathf.Rad2Deg;
+                    Debug.Log($"[角度計算] YZ面: vector=({_vector.y:F2}, {_vector.z:F2}), Atan2({_vector.z:F2}, {_vector.y:F2}) = {angle:F2}度");
+                    break;
 
                 default:
-                    return 0f;
+                    angle = 0f;
+                    break;
             }
+            
+            return angle;
         }
 
         /// <summary>
@@ -325,7 +379,16 @@ namespace BulletML
             var currentCommand = actionElement.Children[currentAction.CurrentIndex];
             currentAction.IncrementIndex();
 
-            return ExecuteCommand(currentCommand, _bullet, currentAction);
+            bool commandResult = ExecuteCommand(currentCommand, _bullet, currentAction);
+            
+            // コマンド実行後にアクションが完了状態になった場合、即座に処理
+            if (currentAction.IsFinished)
+            {
+                _bullet.PopAction();
+                return _bullet.GetCurrentAction() != null;
+            }
+            
+            return commandResult;
         }
 
         /// <summary>
@@ -411,6 +474,8 @@ namespace BulletML
             
             if (repeatCount <= 0)
             {
+                // repeat回数が0の場合、現在のアクションを完了させる
+                _actionRunner.Finish();
                 return true; // repeatしない
             }
 

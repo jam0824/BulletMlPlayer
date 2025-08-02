@@ -95,6 +95,14 @@ namespace BulletML
             m_DirectionChange = new BulletMLChangeInfo();
             m_SpeedChange = new BulletMLChangeInfo();
             m_AccelInfo = new BulletMLAccelInfo();
+            
+            // デバッグ: 座標系設定を確認（可視弾のみ）
+            if (_isVisible)
+            {
+                Debug.Log($"[弾作成] 方向:{_direction}度, 座標系:{_coordinateSystem}, 可視:{_isVisible}");
+                Vector3 testVector = ConvertAngleToVector(_direction, _coordinateSystem);
+                Debug.Log($"[弾作成] テスト変換結果: {testVector} (X:{testVector.x:F3}, Y:{testVector.y:F3}, Z:{testVector.z:F3})");
+            }
         }
 
         /// <summary>
@@ -164,6 +172,15 @@ namespace BulletML
             // 変更情報を更新
             UpdateChanges();
 
+            // 非表示弾（シューター）は移動しない
+            if (!m_IsVisible)
+            {
+                return;
+            }
+
+            // 前回の位置を保存
+            Vector3 oldPosition = m_Position;
+
             // 速度ベクトルを計算
             Vector3 velocity = GetVelocityVector();
 
@@ -172,6 +189,13 @@ namespace BulletML
 
             // 加速度を適用
             m_Position += m_Acceleration * _deltaTime * _deltaTime * 0.5f;
+
+            // デバッグログ（可視弾のみ、最初の数秒間のみ）
+            if (m_IsVisible && Time.frameCount % 60 == 0 && Time.time < 3f)
+            {
+                Vector3 movement = m_Position - oldPosition;
+                Debug.Log($"[弾移動] 方向:{m_Direction:F1}度, 座標系:{m_CoordinateSystem}, 速度ベクトル:{velocity}, 移動量:{movement}, 新位置:{m_Position}");
+            }
         }
 
         /// <summary>
@@ -189,9 +213,20 @@ namespace BulletML
                 }
                 else
                 {
-                    float t = (float)m_DirectionChange.CurrentFrame / m_DirectionChange.Duration;
-                    m_Direction = Mathf.Lerp(m_DirectionChange.StartValue, m_DirectionChange.TargetValue, t);
+                    // フレームを先にインクリメントしてから計算
                     m_DirectionChange.IncrementFrame();
+                    
+                    // インクリメント後に完了判定を再チェック
+                    if (m_DirectionChange.IsCompleted)
+                    {
+                        m_Direction = m_DirectionChange.TargetValue;
+                        m_DirectionChange.IsActive = false;
+                    }
+                    else
+                    {
+                        float t = (float)m_DirectionChange.CurrentFrame / m_DirectionChange.Duration;
+                        m_Direction = Mathf.Lerp(m_DirectionChange.StartValue, m_DirectionChange.TargetValue, t);
+                    }
                 }
             }
 
@@ -205,9 +240,20 @@ namespace BulletML
                 }
                 else
                 {
-                    float t = (float)m_SpeedChange.CurrentFrame / m_SpeedChange.Duration;
-                    m_Speed = Mathf.Lerp(m_SpeedChange.StartValue, m_SpeedChange.TargetValue, t);
+                    // フレームを先にインクリメントしてから計算
                     m_SpeedChange.IncrementFrame();
+                    
+                    // インクリメント後に完了判定を再チェック
+                    if (m_SpeedChange.IsCompleted)
+                    {
+                        m_Speed = m_SpeedChange.TargetValue;
+                        m_SpeedChange.IsActive = false;
+                    }
+                    else
+                    {
+                        float t = (float)m_SpeedChange.CurrentFrame / m_SpeedChange.Duration;
+                        m_Speed = Mathf.Lerp(m_SpeedChange.StartValue, m_SpeedChange.TargetValue, t);
+                    }
                 }
             }
 
@@ -220,21 +266,31 @@ namespace BulletML
                 }
                 else
                 {
-                    float t = (float)m_AccelInfo.CurrentFrame / m_AccelInfo.Duration;
-                    Vector3 currentAccel = new Vector3(
-                        m_AccelInfo.HorizontalAccel * t,
-                        m_AccelInfo.VerticalAccel * t,
-                        0f
-                    );
-                    
-                    // 座標系に応じて加速度を適用
-                    if (m_CoordinateSystem == CoordinateSystem.YZ)
-                    {
-                        currentAccel = new Vector3(0f, currentAccel.y, currentAccel.x);
-                    }
-                    
-                    m_Acceleration = currentAccel;
+                    // フレームを先にインクリメントしてから計算
                     m_AccelInfo.IncrementFrame();
+                    
+                    // インクリメント後に完了判定を再チェック
+                    if (m_AccelInfo.IsCompleted)
+                    {
+                        m_AccelInfo.IsActive = false;
+                    }
+                    else
+                    {
+                        float t = (float)m_AccelInfo.CurrentFrame / m_AccelInfo.Duration;
+                        Vector3 currentAccel = new Vector3(
+                            m_AccelInfo.HorizontalAccel * t,
+                            m_AccelInfo.VerticalAccel * t,
+                            0f
+                        );
+                        
+                        // 座標系に応じて加速度を適用
+                        if (m_CoordinateSystem == CoordinateSystem.YZ)
+                        {
+                            currentAccel = new Vector3(0f, currentAccel.y, currentAccel.x);
+                        }
+                        
+                        m_Acceleration = currentAccel;
+                    }
                 }
             }
         }
@@ -244,7 +300,17 @@ namespace BulletML
         /// </summary>
         public Vector3 GetVelocityVector()
         {
-            return ConvertAngleToVector(m_Direction, m_CoordinateSystem) * m_Speed;
+            Vector3 velocity = ConvertAngleToVector(m_Direction, m_CoordinateSystem) * m_Speed;
+            
+            // デバッグ: 速度ベクトル計算の詳細（最初の1回のみ）
+            if (m_IsVisible && Time.frameCount < 5) // 最初の数フレームのみ
+            {
+                Debug.Log($"[速度計算] 方向:{m_Direction}度, 座標系:{m_CoordinateSystem}, 速度:{m_Speed}");
+                Vector3 dirVector = ConvertAngleToVector(m_Direction, m_CoordinateSystem);
+                Debug.Log($"[速度計算] 方向ベクトル: {dirVector}, 最終速度: {velocity}");
+            }
+            
+            return velocity;
         }
 
         /// <summary>
@@ -254,19 +320,33 @@ namespace BulletML
         {
             float angleRadians = _angleDegrees * Mathf.Deg2Rad;
 
+            Vector3 result;
+            
             switch (_coordinateSystem)
             {
                 case CoordinateSystem.XY:
-                    // XY面：上方向が0度、時計回り
-                    return new Vector3(Mathf.Sin(angleRadians), Mathf.Cos(angleRadians), 0f);
+                    // XY面（横スクロールシューティング）：上方向が0度、時計回り
+                    // X軸が横（左右）、Y軸が縦（上下）、Z軸は使用しない
+                    result = new Vector3(Mathf.Sin(angleRadians), Mathf.Cos(angleRadians), 0f);
+                    if (Time.frameCount < 5) // 最初の数フレームのみ
+                        Debug.Log($"[ConvertAngleToVector] XY面計算: {_angleDegrees}度 → {result}");
+                    break;
 
                 case CoordinateSystem.YZ:
-                    // YZ面：前方向が0度、時計回り（Y軸回転）
-                    return new Vector3(0f, Mathf.Sin(angleRadians), Mathf.Cos(angleRadians));
+                    // YZ面（縦スクロールシューティング）：上方向が0度、時計回り
+                    // X軸は使用しない、Y軸が縦（上下）、Z軸が前後
+                    result = new Vector3(0f, Mathf.Cos(angleRadians), Mathf.Sin(angleRadians));
+                    if (Time.frameCount < 5) // 最初の数フレームのみ
+                        Debug.Log($"[ConvertAngleToVector] YZ面計算: {_angleDegrees}度 → {result}");
+                    break;
 
                 default:
-                    return Vector3.zero;
+                    result = Vector3.zero;
+                    Debug.LogError($"[ConvertAngleToVector] 不明な座標系: {_coordinateSystem}");
+                    break;
             }
+
+            return result;
         }
 
         /// <summary>
