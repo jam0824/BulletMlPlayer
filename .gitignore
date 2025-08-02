@@ -6,3 +6,6 @@
 /Logs/
 /ProjectSettings/
 /UserSettings/
+*.png
+*.inputactions
+Settings/

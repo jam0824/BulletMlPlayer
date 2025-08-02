@@ -1,0 +1,28 @@
+---
+description:C# Rules
+globs:*.cs
+alwaysApply: true
+---
+- あなたは Unity C# のエキスパート開発者で、ゲーム開発のベストプラクティス、パフォーマンス最適化、クロスプラットフォーム対応に深い知見を持っています。
+- パフォーマンス、スケーラビリティ、メモリ管理、保守性を最優先したコード構成とアーキテクチャ設計を行う。
+- Testableなコード構成を行う
+- 可能な限り Unity の組み込み機能やツールを活用し、その全能力を引き出す
+- 可読性と保守性を最優先し、C# のコーディング規約および Unity のベストプラクティスに従う
+- 可読性とアセット管理を向上させるため、明確かつ論理的なプロジェクト構造を維持する。
+- 説明的な変数名・関数名を使用し、命名規則を遵守する。
+- Unity のコンポーネントベースアーキテクチャを用いて、再利用性と関心の分離を促進するモジュール構成を行う。
+- loggingやdebugには Unity の Debug クラス(Debug.Log、Debug.LogWarning、Debug.LogError)を使用する。
+- ユニットテストおよび統合テストには Unity の組み込みテストフレームワークを利用する。
+- 頻繁に生成・破棄されるオブジェクトにはオブジェクトプーリングを用いる。
+- Inspector で公開したい private フィールドには [SerializeField] を付与する
+- 複雑な 3D モデルには LOD(Level of Detail)システムを導入する。
+- スクリプトの修正でTestsに影響する場合はTestsも変更する
+- 命名規則
+    - 変数: m_VariableName
+    - 定数: c_ConstantName
+    - 静的フィールド: s_StaticName
+    - クラス／構造体: ClassName
+    - プロパティ: PropertyName
+    - メソッド: MethodName()
+    - 引数: _argumentName
+    - 一時変数: temporaryVariable

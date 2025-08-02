@@ -1,0 +1,8 @@
+---
+description:データの位置
+globs:
+alwaysApply: true
+---
+- git管理している部分 : Assets/Script
+- Testsフォルダの位置 : Assets/Script/Tests
+- メインのREADME.mdの位置 : Assets/Script/
