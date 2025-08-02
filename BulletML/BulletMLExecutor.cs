@@ -18,6 +18,10 @@ namespace BulletML
         [SerializeField] private float m_LastSequenceVerticalAccel;
         [SerializeField] private float m_DefaultSpeed = 1f; // デフォルト速度
         
+        // changeSpeed内専用のsequence値
+        [SerializeField] private float m_LastChangeSpeedSequence = 0f;
+        [SerializeField] private bool m_ChangeSpeedSequenceInitialized = false;
+        
         /// <summary>
         /// 新しい弾が生成された時のコールバック
         /// </summary>
@@ -112,6 +116,8 @@ namespace BulletML
             m_LastSequenceSpeed = 1f;
             m_LastSequenceHorizontalAccel = 0f;
             m_LastSequenceVerticalAccel = 0f;
+            m_LastChangeSpeedSequence = 0f;
+            m_ChangeSpeedSequenceInitialized = false;
         }
 
         /// <summary>
@@ -226,7 +232,7 @@ namespace BulletML
         /// <summary>
         /// 方向を計算する
         /// </summary>
-        private float CalculateDirection(BulletMLElement _directionElement, BulletMLBullet _sourceBullet)
+        private float CalculateDirection(BulletMLElement _directionElement, BulletMLBullet _sourceBullet, bool _isInChangeDirection = false)
         {
             float value = EvaluateExpression(_directionElement.Value);
             var directionType = _directionElement.GetDirectionType();
@@ -255,7 +261,18 @@ namespace BulletML
                     return _sourceBullet.Direction + value;
 
                 case DirectionType.sequence:
-                    return m_LastSequenceDirection + value;
+                    if (_isInChangeDirection)
+                    {
+                        // changeDirection要素内では方向を連続的に変化させる
+                        float newDirection = m_LastSequenceDirection + value;
+                        m_LastSequenceDirection = newDirection;
+                        return newDirection;
+                    }
+                    else
+                    {
+                        // それ以外では直前の弾を撃った方向が0の相対値
+                        return m_LastSequenceDirection + value;
+                    }
 
                 default:
                     return value;
@@ -265,7 +282,7 @@ namespace BulletML
         /// <summary>
         /// 速度を計算する
         /// </summary>
-        private float CalculateSpeed(BulletMLElement _speedElement, BulletMLBullet _sourceBullet)
+        private float CalculateSpeed(BulletMLElement _speedElement, BulletMLBullet _sourceBullet, bool _isInChangeSpeed = false)
         {
             float value = EvaluateExpression(_speedElement.Value);
             var speedType = _speedElement.GetSpeedType();
@@ -279,7 +296,25 @@ namespace BulletML
                     return _sourceBullet.Speed + value;
 
                 case SpeedType.sequence:
-                    return m_LastSequenceSpeed + value;
+                    if (_isInChangeSpeed)
+                    {
+                        // changeSpeed要素内では弾の速度を連続的に変化させる
+                        // 初回実行時のみ弾の現在速度で初期化
+                        if (!m_ChangeSpeedSequenceInitialized)
+                        {
+                            m_LastChangeSpeedSequence = _sourceBullet.Speed;
+                            m_ChangeSpeedSequenceInitialized = true;
+                        }
+                        
+                        // changeSpeed専用のシーケンス値を累積更新
+                        m_LastChangeSpeedSequence += value;
+                        return m_LastChangeSpeedSequence;
+                    }
+                    else
+                    {
+                        // それ以外の要素内では直前の弾の速度との相対値
+                        return m_LastSequenceSpeed + value;
+                    }
 
                 default:
                     return value;
@@ -672,8 +707,8 @@ namespace BulletML
             // パラメータを設定
             m_ExpressionEvaluator.SetParameters(_actionRunner.Parameters);
 
-            // ターゲット方向を計算
-            float targetDirection = CalculateDirection(directionElement, _bullet);
+            // ターゲット方向を計算（changeDirection要素内であることを明示）
+            float targetDirection = CalculateDirection(directionElement, _bullet, true);
             int duration = Mathf.RoundToInt(EvaluateExpression(termElement.Value));
 
             // 方向変更を開始
@@ -705,8 +740,8 @@ namespace BulletML
             // パラメータを設定
             m_ExpressionEvaluator.SetParameters(_actionRunner.Parameters);
 
-            // ターゲット速度を計算
-            float targetSpeed = CalculateSpeed(speedElement, _bullet);
+            // ターゲット速度を計算（changeSpeed要素内であることを明示）
+            float targetSpeed = CalculateSpeed(speedElement, _bullet, true);
             int duration = Mathf.RoundToInt(EvaluateExpression(termElement.Value));
 
             // 速度変更を開始

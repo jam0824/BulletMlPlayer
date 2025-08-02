@@ -1,0 +1,130 @@
+<?xml version="1.0" ?>
+<!DOCTYPE bulletml SYSTEM "http://www.asahi-net.or.jp/~cs8k-cyu/bulletml/bulletml.dtd">
+
+<bulletml type="vertical" xmlns="http://www.asahi-net.or.jp/~cs8k-cyu/bulletml">
+
+<!-- 高度なchangeSpeedテスト: 方向変更や加速と組み合わせ -->
+<action label="top">
+  <repeat>
+    <times>3</times>
+    <action>
+      <!-- パターン1: 円形発射 + sequence型changeSpeed -->
+      <repeat>
+        <times>8</times>
+        <action>
+          <fire>
+            <direction type="sequence">45</direction>
+            <speed>1.0</speed>
+            <bulletRef label="spiralBullet"/>
+          </fire>
+          <wait>5</wait>
+        </action>
+      </repeat>
+      <wait>180</wait>
+      
+      <!-- パターン2: 扇形発射 + 複合速度変化 -->
+      <repeat>
+        <times>5</times>
+        <action>
+          <fire>
+            <direction type="absolute">225+$1*22.5</direction>
+            <speed>0.8</speed>
+            <bulletRef label="complexSpeedBullet"/>
+          </fire>
+        </action>
+      </repeat>
+      <wait>240</wait>
+    </action>
+  </repeat>
+</action>
+
+<!-- スパイラル弾: sequence型でより滑らかな速度変化 -->
+<bullet label="spiralBullet">
+  <action>
+    <wait>20</wait>
+    <!-- 1段階: 加速 -->
+    <changeSpeed>
+      <speed type="sequence">0.5</speed>
+      <term>30</term>
+    </changeSpeed>
+    <!-- 同時に方向も変更 -->
+    <changeDirection>
+      <direction type="relative">30</direction>
+      <term>30</term>
+    </changeDirection>
+    <wait>40</wait>
+    
+    <!-- 2段階: さらに加速 -->
+    <changeSpeed>
+      <speed type="sequence">0.8</speed>
+      <term>25</term>
+    </changeSpeed>
+    <changeDirection>
+      <direction type="relative">-45</direction>
+      <term>25</term>
+    </changeDirection>
+    <wait>35</wait>
+    
+    <!-- 3段階: 減速しながら直進 -->
+    <changeSpeed>
+      <speed type="sequence">-1.2</speed>
+      <term>40</term>
+    </changeSpeed>
+    <wait>60</wait>
+    <vanish/>
+  </action>
+</bullet>
+
+<!-- 複合速度変化弾: 加速度とchangeSpeedの組み合わせ -->
+<bullet label="complexSpeedBullet">
+  <action>
+    <wait>10</wait>
+    <!-- まず加速度で動きを開始 -->
+    <accel>
+      <vertical type="absolute">0.1</vertical>
+      <term>45</term>
+    </accel>
+    
+    <!-- 同時にchangeSpeedで基本速度を調整 -->
+    <changeSpeed>
+      <speed type="relative">1.5</speed>
+      <term>45</term>
+    </changeSpeed>
+    <wait>60</wait>
+    
+    <!-- sequence型で連続的に速度を変化させながら -->
+    <changeSpeed>
+      <speed type="sequence">0.3</speed>
+      <term>20</term>
+    </changeSpeed>
+    <wait>30</wait>
+    
+    <changeSpeed>
+      <speed type="sequence">0.4</speed>
+      <term>25</term>
+    </changeSpeed>
+    <!-- 同時に水平加速度を追加 -->
+    <accel>
+      <horizontal type="absolute">0.15</horizontal>
+      <term>25</term>
+    </accel>
+    <wait>35</wait>
+    
+    <!-- 最終段階: 急激な減速 -->
+    <changeSpeed>
+      <speed type="sequence">-2.0</speed>
+      <term>15</term>
+    </changeSpeed>
+    <wait>30</wait>
+    
+    <!-- 最後に少し加速して消える -->
+    <changeSpeed>
+      <speed type="absolute">4.0</speed>
+      <term>20</term>
+    </changeSpeed>
+    <wait>40</wait>
+    <vanish/>
+  </action>
+</bullet>
+
+</bulletml>

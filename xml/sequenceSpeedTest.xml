@@ -1,0 +1,153 @@
+<?xml version="1.0" ?>
+<!DOCTYPE bulletml SYSTEM "http://www.asahi-net.or.jp/~cs8k-cyu/bulletml/bulletml.dtd">
+
+<bulletml type="vertical" xmlns="http://www.asahi-net.or.jp/~cs8k-cyu/bulletml">
+
+<!-- sequence型changeSpeedの詳細テスト -->
+<action label="top">
+  <!-- テストケース1: 正の値による連続加速 -->
+  <fire>
+    <direction type="absolute">260</direction>
+    <speed>1.0</speed>
+    <bulletRef label="positiveSequence"/>
+  </fire>
+  <wait>30</wait>
+  
+  <!-- テストケース2: 負の値による連続減速 -->
+  <fire>
+    <direction type="absolute">270</direction>
+    <speed>3.0</speed>
+    <bulletRef label="negativeSequence"/>
+  </fire>
+  <wait>30</wait>
+  
+  <!-- テストケース3: 正負混合による波状変化 -->
+  <fire>
+    <direction type="absolute">280</direction>
+    <speed>2.0</speed>
+    <bulletRef label="waveSequence"/>
+  </fire>
+  <wait>30</wait>
+  
+  <!-- テストケース4: 小刻みな変化によるきめ細かな制御 -->
+  <fire>
+    <direction type="absolute">250</direction>
+    <speed>1.5</speed>
+    <bulletRef label="fineSequence"/>
+  </fire>
+  <wait>30</wait>
+  
+  <!-- テストケース5: 大きな変化による劇的な速度変化 -->
+  <fire>
+    <direction type="absolute">290</direction>
+    <speed>0.5</speed>
+    <bulletRef label="dramaticSequence"/>
+  </fire>
+</action>
+
+<!-- テスト1: 正の値による段階的加速 -->
+<bullet label="positiveSequence">
+  <action>
+    <wait>20</wait>
+    <!-- 1.0 → 1.3 → 1.8 → 2.5 → 3.5 → 5.0 -->
+    <changeSpeed><speed type="sequence">0.3</speed><term>30</term></changeSpeed>
+    <wait>40</wait>
+    <changeSpeed><speed type="sequence">0.5</speed><term>30</term></changeSpeed>
+    <wait>40</wait>
+    <changeSpeed><speed type="sequence">0.7</speed><term>30</term></changeSpeed>
+    <wait>40</wait>
+    <changeSpeed><speed type="sequence">1.0</speed><term>30</term></changeSpeed>
+    <wait>40</wait>
+    <changeSpeed><speed type="sequence">1.5</speed><term>30</term></changeSpeed>
+    <wait>60</wait>
+    <vanish/>
+  </action>
+</bullet>
+
+<!-- テスト2: 負の値による段階的減速 -->
+<bullet label="negativeSequence">
+  <action>
+    <wait>15</wait>
+    <!-- 3.0 → 2.5 → 1.8 → 1.0 → 0.3 → 停止寸前 -->
+    <changeSpeed><speed type="sequence">-0.5</speed><term>25</term></changeSpeed>
+    <wait>35</wait>
+    <changeSpeed><speed type="sequence">-0.7</speed><term>25</term></changeSpeed>
+    <wait>35</wait>
+    <changeSpeed><speed type="sequence">-0.8</speed><term>25</term></changeSpeed>
+    <wait>35</wait>
+    <changeSpeed><speed type="sequence">-0.7</speed><term>25</term></changeSpeed>
+    <wait>35</wait>
+    <changeSpeed><speed type="sequence">-0.2</speed><term>25</term></changeSpeed>
+    <wait>60</wait>
+    <vanish/>
+  </action>
+</bullet>
+
+<!-- テスト3: 波状の速度変化（加速→減速→加速） -->
+<bullet label="waveSequence">
+  <action>
+    <wait>10</wait>
+    <!-- 波のような変化: 2.0 → 2.8 → 3.8 → 3.0 → 1.5 → 2.5 → 4.0 -->
+    <changeSpeed><speed type="sequence">0.8</speed><term>20</term></changeSpeed>
+    <wait>30</wait>
+    <changeSpeed><speed type="sequence">1.0</speed><term>20</term></changeSpeed>
+    <wait>30</wait>
+    <changeSpeed><speed type="sequence">-0.8</speed><term>20</term></changeSpeed>
+    <wait>30</wait>
+    <changeSpeed><speed type="sequence">-1.5</speed><term>20</term></changeSpeed>
+    <wait>30</wait>
+    <changeSpeed><speed type="sequence">1.0</speed><term>20</term></changeSpeed>
+    <wait>30</wait>
+    <changeSpeed><speed type="sequence">1.5</speed><term>20</term></changeSpeed>
+    <wait>40</wait>
+    <vanish/>
+  </action>
+</bullet>
+
+<!-- テスト4: 小刻みな変化によるスムーズな制御 -->
+<bullet label="fineSequence">
+  <action>
+    <wait>5</wait>
+    <!-- 細かい調整: 1.5 → 1.6 → 1.8 → 2.1 → 2.5 → 3.0 → 3.6 → 4.3 → 5.1 → 6.0 -->
+    <changeSpeed><speed type="sequence">0.1</speed><term>15</term></changeSpeed>
+    <wait>20</wait>
+    <changeSpeed><speed type="sequence">0.2</speed><term>15</term></changeSpeed>
+    <wait>20</wait>
+    <changeSpeed><speed type="sequence">0.3</speed><term>15</term></changeSpeed>
+    <wait>20</wait>
+    <changeSpeed><speed type="sequence">0.4</speed><term>15</term></changeSpeed>
+    <wait>20</wait>
+    <changeSpeed><speed type="sequence">0.5</speed><term>15</term></changeSpeed>
+    <wait>20</wait>
+    <changeSpeed><speed type="sequence">0.6</speed><term>15</term></changeSpeed>
+    <wait>20</wait>
+    <changeSpeed><speed type="sequence">0.7</speed><term>15</term></changeSpeed>
+    <wait>20</wait>
+    <changeSpeed><speed type="sequence">0.8</speed><term>15</term></changeSpeed>
+    <wait>20</wait>
+    <changeSpeed><speed type="sequence">0.9</speed><term>15</term></changeSpeed>
+    <wait>30</wait>
+    <vanish/>
+  </action>
+</bullet>
+
+<!-- テスト5: 劇的な速度変化 -->
+<bullet label="dramaticSequence">
+  <action>
+    <wait>25</wait>
+    <!-- 劇的変化: 0.5 → 3.0 → 0.2 → 5.5 → 1.0 → 8.0 -->
+    <changeSpeed><speed type="sequence">2.5</speed><term>20</term></changeSpeed>
+    <wait>30</wait>
+    <changeSpeed><speed type="sequence">-2.8</speed><term>25</term></changeSpeed>
+    <wait>35</wait>
+    <changeSpeed><speed type="sequence">5.3</speed><term>15</term></changeSpeed>
+    <wait>25</wait>
+    <changeSpeed><speed type="sequence">-4.5</speed><term>30</term></changeSpeed>
+    <wait>40</wait>
+    <changeSpeed><speed type="sequence">7.0</speed><term>10</term></changeSpeed>
+    <wait>20</wait>
+    <vanish/>
+  </action>
+</bullet>
+
+</bulletml>

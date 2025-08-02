@@ -1,0 +1,106 @@
+<?xml version="1.0" ?>
+<!DOCTYPE bulletml SYSTEM "http://www.asahi-net.or.jp/~cs8k-cyu/bulletml/bulletml.dtd">
+
+<bulletml type="vertical" xmlns="http://www.asahi-net.or.jp/~cs8k-cyu/bulletml">
+
+<!-- メインアクション: 複数のテストパターンを順次実行 -->
+<action label="top">
+  <repeat>
+    <times>5</times>
+    <action>
+      <!-- テスト1: absolute型のchangeSpeed -->
+      <fire>
+        <direction type="absolute">270</direction>
+        <speed>1.0</speed>
+        <bulletRef label="speedTest1"/>
+      </fire>
+      <wait>60</wait>
+      
+      <!-- テスト2: relative型のchangeSpeed -->
+      <fire>
+        <direction type="absolute">250</direction>
+        <speed>2.0</speed>
+        <bulletRef label="speedTest2"/>
+      </fire>
+      <wait>60</wait>
+      
+      <!-- テスト3: sequence型のchangeSpeed（連続変化） -->
+      <fire>
+        <direction type="absolute">290</direction>
+        <speed>1.5</speed>
+        <bulletRef label="speedTest3"/>
+      </fire>
+      <wait>120</wait>
+    </action>
+  </repeat>
+</action>
+
+<!-- テスト1: absolute型 - 速度を絶対値で変更 -->
+<bullet label="speedTest1">
+  <action>
+    <wait>30</wait>
+    <changeSpeed>
+      <speed type="absolute">3.0</speed>
+      <term>60</term>
+    </changeSpeed>
+    <wait>120</wait>
+    <changeSpeed>
+      <speed type="absolute">0.5</speed>
+      <term>30</term>
+    </changeSpeed>
+    <wait>180</wait>
+    <vanish/>
+  </action>
+</bullet>
+
+<!-- テスト2: relative型 - 現在の速度に対する相対変更 -->
+<bullet label="speedTest2">
+  <action>
+    <wait>20</wait>
+    <changeSpeed>
+      <speed type="relative">1.0</speed>
+      <term>45</term>
+    </changeSpeed>
+    <wait>90</wait>
+    <changeSpeed>
+      <speed type="relative">-1.5</speed>
+      <term>60</term>
+    </changeSpeed>
+    <wait>150</wait>
+    <vanish/>
+  </action>
+</bullet>
+
+<!-- テスト3: sequence型 - 連続的な速度変化（今回修正した機能） -->
+<bullet label="speedTest3">
+  <action>
+    <wait>15</wait>
+    <!-- 1回目のsequence: 1.5 + 0.8 = 2.3 -->
+    <changeSpeed>
+      <speed type="sequence">0.8</speed>
+      <term>40</term>
+    </changeSpeed>
+    <wait>60</wait>
+    <!-- 2回目のsequence: 2.3 + 0.5 = 2.8 -->
+    <changeSpeed>
+      <speed type="sequence">0.5</speed>
+      <term>30</term>
+    </changeSpeed>
+    <wait>50</wait>
+    <!-- 3回目のsequence: 2.8 + (-1.0) = 1.8 -->
+    <changeSpeed>
+      <speed type="sequence">-1.0</speed>
+      <term>45</term>
+    </changeSpeed>
+    <wait>80</wait>
+    <!-- 4回目のsequence: 1.8 + 1.2 = 3.0 -->
+    <changeSpeed>
+      <speed type="sequence">1.2</speed>
+      <term>35</term>
+    </changeSpeed>
+    <wait>120</wait>
+    <vanish/>
+  </action>
+</bullet>
+
+</bulletml>

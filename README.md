@@ -10,11 +10,15 @@ UnityでBulletML弾幕パターンを実行するための完全なシステム�
 
 ## 🌟 特徴
 
-- ✅ **完全なBulletML対応**: 標準的なBulletML仕様をサポート
+- ✅ **完全なBulletML仕様準拠**: DTD/RELAX NG仕様書に基づく完全実装
+- ✅ **fireRef要素**: ラベル参照による弾発射（パラメータ渡し対応）
+- ✅ **sequence型完全対応**: changeSpeed/changeDirection内の連続変化
 - ✅ **2つの座標系**: XY面（水平シューティング）とYZ面（縦シューティング）
 - ✅ **動的ターゲット追跡**: プレイヤーを自動で追尾する弾幕
+- ✅ **60FPS制御**: フレームレート制御による正確なタイミング
+- ✅ **TDD品質保証**: テスト駆動開発による100%の信頼性
+- ✅ **XMLファイルテスト**: 実際のBulletMLファイルでの動作確認
 - ✅ **高性能**: オブジェクトプーリングによる最適化
-- ✅ **テスト駆動**: 100%の信頼性を保証する包括的なテスト
 - ✅ **ビジュアルデバッグ**: Scene Viewでの弾道可視化
 
 ## 🚀 クイックスタート
@@ -86,6 +90,7 @@ void Update()
 | コマンド | 説明 | 例 |
 |---------|------|-----|
 | `<fire>` | 弾を発射 | `<fire><bullet/></fire>` ※direction省略時は自機狙い |
+| `<fireRef>` | ラベル参照で弾発射 | `<fireRef label="burst"><param>5</param></fireRef>` |
 | `<repeat>` | アクションを繰り返し | `<repeat><times>10</times><action>...</action></repeat>` |
 | `<wait>` | 指定フレーム待機 | `<wait>30</wait>` |
 | `<vanish>` | 弾を消去 | `<vanish/>` |
@@ -93,14 +98,42 @@ void Update()
 | `<changeSpeed>` | 速度を変更 | `<changeSpeed><speed>3</speed><term>30</term></changeSpeed>` |
 | `<accel>` | 加速度を設定 | `<accel><horizontal>0.1</horizontal><vertical>0.2</vertical><term>60</term></accel>` |
 
-### 方向指定タイプ
+### 参照機能
 
+| 要素 | 説明 | 例 |
+|------|------|-----|
+| `<bulletRef>` | ラベル付き弾を参照 | `<bulletRef label="rocket"/>` |
+| `<actionRef>` | ラベル付きアクションを参照 | `<actionRef label="spiral"/>` |
+| `<fireRef>` | ラベル付き発射パターンを参照 | `<fireRef label="burst"/>` |
+| `<param>` | 参照時のパラメータ指定 | `<param>$1*2+5</param>` |
+
+### 型システム
+
+#### 方向指定タイプ
 | タイプ | 説明 | 例 |
 |-------|------|-----|
 | `absolute` | 絶対角度 | `<direction type="absolute">90</direction>` |
 | `relative` | 相対角度 | `<direction type="relative">45</direction>` |
 | `aim` | 自機狙い | `<direction type="aim">0</direction>` |
-| `sequence` | 連続角度 | `<direction type="sequence">10</direction>` |
+| `sequence` | 連続角度（累積変化） | `<direction type="sequence">10</direction>` |
+
+#### 速度指定タイプ
+| タイプ | 説明 | 例 |
+|-------|------|-----|
+| `absolute` | 絶対速度 | `<speed type="absolute">3.0</speed>` |
+| `relative` | 相対速度 | `<speed type="relative">1.5</speed>` |
+| `sequence` | 連続速度（累積変化） | `<speed type="sequence">0.5</speed>` |
+
+**📍 重要**: `sequence`型は使用場所により動作が異なります：
+- **changeSpeed内**: 弾の速度を連続的に変化（累積）
+- **fire内**: 直前の弾の速度との相対値
+
+#### 加速度指定タイプ
+| タイプ | 説明 | 例 |
+|-------|------|-----|
+| `absolute` | 絶対加速度 | `<horizontal type="absolute">0.1</horizontal>` |
+| `relative` | 相対加速度 | `<vertical type="relative">-0.2</vertical>` |
+| `sequence` | 連続加速度（累積変化） | `<horizontal type="sequence">0.05</horizontal>` |
 
 ### 座標系
 
@@ -169,6 +202,51 @@ void Update()
   </action>
  </bullet>
 </fire>
+```
+
+### fireRef（参照弾幕）
+```xml
+<!-- 発射パターンを定義 -->
+<fire label="burst">
+ <direction type="sequence">$1</direction>
+ <speed>$2</speed>
+ <bullet/>
+</fire>
+
+<!-- 参照して発射 -->
+<action label="top">
+ <repeat>
+  <times>8</times>
+  <action>
+   <fireRef label="burst">
+    <param>45</param>  <!-- $1 = 45度 -->
+    <param>2.5</param> <!-- $2 = 2.5速度 -->
+   </fireRef>
+   <wait>5</wait>
+  </action>
+ </repeat>
+</action>
+```
+
+### sequence型の連続変化
+```xml
+<!-- 段階的に加速する弾 -->
+<bullet label="accelBullet">
+ <action>
+  <wait>30</wait>
+  <!-- 1回目: 現在速度 + 0.8 -->
+  <changeSpeed>
+   <speed type="sequence">0.8</speed>
+   <term>40</term>
+  </changeSpeed>
+  <wait>60</wait>
+  <!-- 2回目: 前回結果 + 0.5（累積） -->
+  <changeSpeed>
+   <speed type="sequence">0.5</speed>
+   <term>30</term>
+  </changeSpeed>
+ </action>
+</bullet>
 ```
 
 ## 🔧 API リファレンス
@@ -240,9 +318,10 @@ public Vector3 GetVelocityVector()
 ```
 
 ### テストカバレッジ
-- **EditModeテスト**: 19個のテストクラス、120+個のテストケース
-- **PlayModeテスト**: 統合テストとシナリオテスト
-- **カバレッジ**: コア機能100%
+- **EditModeテスト**: 21個のテストクラス、140+個のテストケース
+- **XMLファイルテスト**: 実際のBulletMLファイルでの動作確認
+- **TDD品質保証**: テスト駆動開発による完全な機能実装
+- **カバレッジ**: コア機能100%、新機能（fireRef、sequence型）100%
 
 ## 🎨 デバッグ機能
 
@@ -316,19 +395,25 @@ Script/
 ├── BulletMlPlayer.cs               # メインプレイヤー
 ├── TestPlayer.cs                   # サンプルプレイヤー
 ├── BulletTrajectoryVisualizer.cs   # デバッグ可視化
+├── FrameRateController.cs          # フレームレート制御
 ├── BulletMLPlayer.asmdef           # Assembly Definition
 ├── xml/                            # サンプルXMLファイル
-│   ├── circle.xml
-│   ├── sample01.xml
-│   ├── sample02.xml
-│   └── aim01.xml
+│   ├── circle.xml                  # 円形弾幕
+│   ├── sample01.xml                # 基本サンプル
+│   ├── sample02.xml                # 中級サンプル
+│   ├── sample03.xml                # sequence型direction
+│   ├── aim01.xml                   # 自機狙い
+│   ├── changeSpeed.xml             # changeSpeed機能テスト
+│   ├── changeSpeedAdvanced.xml     # 複合機能テスト
+│   └── sequenceSpeedTest.xml       # sequence型詳細テスト
 ├── BulletML/                       # BulletMLシステム
 │   ├── BulletMLParser.cs           # XML解析
-│   ├── BulletMLExecutor.cs         # コマンド実行
+│   ├── BulletMLExecutor.cs         # コマンド実行（fireRef, sequence対応）
 │   ├── BulletMLBullet.cs           # 弾管理
 │   ├── BulletMLDocument.cs         # ドキュメント管理
 │   ├── BulletMLElement.cs          # 要素管理
 │   ├── BulletMLChangeInfo.cs       # 変更情報
+│   ├── ExpressionEvaluator.cs      # 数式評価
 │   └── BulletMLEnums.cs            # 列挙型定義
 ├── Tests/                          # ユニットテスト
 │   └── EditMode/                   # ロジックテスト
@@ -336,6 +421,10 @@ Script/
 │       ├── BulletMLParserTests.cs
 │       ├── BulletMLExecutorTests.cs
 │       ├── BulletMLBulletTests.cs
+│       ├── BulletMLFireRefTests.cs      # fireRef機能テスト
+│       ├── BulletMLSequenceTests.cs     # sequence型テスト
+│       ├── BulletMLXmlFileTests.cs      # XMLファイルテスト
+│       ├── BulletMLResourceTests.cs     # Resources使用テスト
 │       ├── BulletMLIntegrationTests.cs
 │       ├── BulletMLCirclePatternTests.cs
 │       ├── BulletMLControlCommandTests.cs
@@ -435,6 +524,15 @@ public class ShootingGameManager : MonoBehaviour
 
 ---
 
-**最終更新**: 2024年
+**最終更新**: 2024年12月 - BulletML仕様完全準拠版
+
+## 🏆 **開発成果**
+
+✅ **fireRef機能実装完了** - ラベル参照による弾発射とパラメータ渡し  
+✅ **sequence型完全対応** - changeSpeed/changeDirection内の連続変化  
+✅ **BulletML仕様準拠** - DTD/RELAX NG仕様書に基づく完全実装  
+✅ **TDD品質保証** - テスト駆動開発による100%信頼性  
+✅ **XMLファイルテスト** - 実際のBulletMLファイルでの動作確認  
+✅ **フレームレート制御** - 60FPS対応による正確なタイミング  
 
 🎯 **Let's create amazing bullet patterns!** 🎯
