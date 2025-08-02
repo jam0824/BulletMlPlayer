@@ -378,7 +378,7 @@ public Vector3 GetVelocityVector()
 ```
 
 ### テストカバレッジ
-- **EditModeテスト**: 23個のテストクラス、160+個のテストケース
+- **EditModeテスト**: 24個のテストクラス、170+個のテストケース
 - **XMLファイルテスト**: 実際のBulletMLファイルでの動作確認
 - **TDD品質保証**: テスト駆動開発による完全な機能実装
 - **カバレッジ**: コア機能100%、新機能（fireRef、sequence型）100%
@@ -480,7 +480,8 @@ Script/
 │   ├── sequenceSpeedTest.xml       # sequence型詳細テスト
 │   ├── [G_DARIUS]_homing_laser.xml # ホーミングレーザー（3段階速度変化）
 │   ├── [Guwange]_round_2_boss_circle_fire.xml # 二段階円形弾幕
-│   └── [Progear]_round_1_boss_grow_bullets.xml # 成長する弾幕（停止→爆発）
+│   ├── [Progear]_round_1_boss_grow_bullets.xml # 成長する弾幕（停止→爆発）
+│   └── [Daiouzyou]_hibachi_1.xml # 大往生ひばち（超高密度弾幕地獄）
 ├── BulletML/                       # BulletMLシステム
 │   ├── BulletMLParser.cs           # XML解析
 │   ├── BulletMLExecutor.cs         # コマンド実行（fireRef, sequence対応）
@@ -503,10 +504,11 @@ Script/
 │       ├── BulletMLHomingLaserTests.cs  # ホーミングレーザーテスト
 │       ├── BulletMLGuwangeCircleFireTests.cs # 二段階円形弾幕テスト
 │       ├── BulletMLProgearGrowBulletsTests.cs # 成長する弾幕テスト
+│       ├── BulletMLDaiouzyouHibachiTests.cs # 大往生ひばち超高密度弾幕テスト
 │       ├── BulletMLIntegrationTests.cs
 │       ├── BulletMLCirclePatternTests.cs
 │       ├── BulletMLControlCommandTests.cs
-│       └── ...（23個のテストクラス）
+│       └── ...（24個のテストクラス）
 ```
 
 ## 🎮 実装例

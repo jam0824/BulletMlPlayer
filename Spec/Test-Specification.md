@@ -6,7 +6,7 @@
 テスト駆動開発（TDD）によって100%の信頼性を保証します。
 
 **テストフレームワーク**: Unity Test Framework  
-**テストカバレッジ**: 23個のテストクラス、160+個のテストケース  
+**テストカバレッジ**: 24個のテストクラス、170+個のテストケース  
 **更新日**: 2025年8月
 
 ---
@@ -35,7 +35,7 @@ graph TD
 
 | カテゴリ | テスト数 | 目的 |
 |---------|---------|------|
-| **EditModeテスト** | 160+ | ロジックの正確性検証 |
+| **EditModeテスト** | 170+ | ロジックの正確性検証 |
 | **PlayModeテスト** | 20+ | Unity統合環境での動作確認 |
 | **XMLファイルテスト** | 15+ | 実際のBulletMLファイルでの検証 |
 | **パフォーマンステスト** | 10+ | 性能・メモリ使用量測定 |
@@ -191,6 +191,27 @@ graph TD
 - 子弾のsequence速度増加
 - 適切な弾の消滅処理
 
+#### BulletMLDaiouzyouHibachiTests.cs
+```csharp
+[Test] public void DaiouzyouHibachi_ParseSuccessfully()
+[Test] public void DaiouzyouHibachi_SingleCycle_17Bullets()
+[Test] public void DaiouzyouHibachi_AimDirection_PlayerTargeting()
+[Test] public void DaiouzyouHibachi_SequenceDirection_CumulativeChange()
+[Test] public void DaiouzyouHibachi_FireRefExecution_16References()
+[Test] public void DaiouzyouHibachi_RankInfluence_RepeatCount()
+[Test] public void DaiouzyouHibachi_Speed_RankDependent()
+[Test] public void DaiouzyouHibachi_WaitTime_RankDependent()
+[Test] public void DaiouzyouHibachi_HighDensity_MultiCycle()
+[Test] public void DaiouzyouHibachi_Performance_BulletManagement()
+```
+
+**テスト対象:**
+- 超高密度弾幕（ランク1.0で1,360発）
+- デュアル狙い撃ちシステム（メイン弾+sequence弾群）
+- fireRef参照による16発連射
+- ランク依存の繰り返し回数・速度・待機時間
+- 大量弾生成時のパフォーマンス
+
 ---
 
 ## 🎮 PlayModeテスト（統合テスト）
@@ -228,6 +249,7 @@ graph TD
 | `[G_DARIUS]_homing_laser.xml` | ホーミング | 複雑な多段階パターン |
 | `[Guwange]_round_2_boss_circle_fire.xml` | 二段階円形 | 親弾・子弾システム |
 | `[Progear]_round_1_boss_grow_bullets.xml` | 成長弾幕 | 停止→爆発パターン |
+| `[Daiouzyou]_hibachi_1.xml` | 超高密度弾幕 | 1,360発の弾幕地獄 |
 
 **テスト内容:**
 ```csharp
