@@ -1,0 +1,363 @@
+<?xml version="1.0" ?>
+<bulletml type="vertical">
+
+<!-- sequence型 horizontal 基本テスト: +値連続 -->
+<bullet label="sequenceHorizontalPositive">
+  <action>
+    <wait>30</wait>
+    <accel>
+      <horizontal type="sequence">0.05</horizontal>
+      <term>30</term>
+    </accel>
+    <wait>40</wait>
+    <accel>
+      <horizontal type="sequence">0.08</horizontal>
+      <term>35</term>
+    </accel>
+    <wait>45</wait>
+    <accel>
+      <horizontal type="sequence">0.04</horizontal>
+      <term>25</term>
+    </accel>
+  </action>
+</bullet>
+
+<!-- sequence型 vertical 基本テスト: +値連続 -->
+<bullet label="sequenceVerticalPositive">
+  <action>
+    <wait>30</wait>
+    <accel>
+      <vertical type="sequence">0.06</vertical>
+      <term>30</term>
+    </accel>
+    <wait>40</wait>
+    <accel>
+      <vertical type="sequence">0.04</vertical>
+      <term>30</term>
+    </accel>
+    <wait>40</wait>
+    <accel>
+      <vertical type="sequence">0.07</vertical>
+      <term>30</term>
+    </accel>
+  </action>
+</bullet>
+
+<!-- sequence型 両方向同時テスト -->
+<bullet label="sequenceBothDirections">
+  <action>
+    <wait>30</wait>
+    <accel>
+      <horizontal type="sequence">0.05</horizontal>
+      <vertical type="sequence">0.04</vertical>
+      <term>35</term>
+    </accel>
+    <wait>45</wait>
+    <accel>
+      <horizontal type="sequence">0.03</horizontal>
+      <vertical type="sequence">0.06</vertical>
+      <term>30</term>
+    </accel>
+    <wait>40</wait>
+    <accel>
+      <horizontal type="sequence">0.08</horizontal>
+      <vertical type="sequence">-0.02</vertical>
+      <term>25</term>
+    </accel>
+  </action>
+</bullet>
+
+<!-- sequence型 負の値連続テスト -->
+<bullet label="sequenceNegative">
+  <action>
+    <wait>30</wait>
+    <accel>
+      <horizontal type="sequence">-0.04</horizontal>
+      <vertical type="sequence">-0.03</vertical>
+      <term>30</term>
+    </accel>
+    <wait>40</wait>
+    <accel>
+      <horizontal type="sequence">-0.06</horizontal>
+      <vertical type="sequence">-0.05</vertical>
+      <term>30</term>
+    </accel>
+    <wait>40</wait>
+    <accel>
+      <horizontal type="sequence">-0.02</horizontal>
+      <vertical type="sequence">-0.07</vertical>
+      <term>30</term>
+    </accel>
+  </action>
+</bullet>
+
+<!-- sequence型 混合テスト: +/-交互 -->
+<bullet label="sequenceAlternating">
+  <action>
+    <wait>25</wait>
+    <accel>
+      <horizontal type="sequence">0.08</horizontal>
+      <vertical type="sequence">0.06</vertical>
+      <term>25</term>
+    </accel>
+    <wait>35</wait>
+    <accel>
+      <horizontal type="sequence">-0.12</horizontal>
+      <vertical type="sequence">-0.04</vertical>
+      <term>30</term>
+    </accel>
+    <wait>40</wait>
+    <accel>
+      <horizontal type="sequence">0.1</horizontal>
+      <vertical type="sequence">0.08</vertical>
+      <term>25</term>
+    </accel>
+    <wait>35</wait>
+    <accel>
+      <horizontal type="sequence">-0.06</horizontal>
+      <vertical type="sequence">-0.1</vertical>
+      <term>30</term>
+    </accel>
+  </action>
+</bullet>
+
+<!-- sequence型 大幅変化テスト -->
+<bullet label="sequenceDramatic">
+  <action>
+    <wait>20</wait>
+    <accel>
+      <horizontal type="sequence">0.2</horizontal>
+      <vertical type="sequence">0.15</vertical>
+      <term>40</term>
+    </accel>
+    <wait>50</wait>
+    <accel>
+      <horizontal type="sequence">-0.35</horizontal>
+      <vertical type="sequence">-0.25</vertical>
+      <term>45</term>
+    </accel>
+    <wait>55</wait>
+    <accel>
+      <horizontal type="sequence">0.4</horizontal>
+      <vertical type="sequence">0.3</vertical>
+      <term>35</term>
+    </accel>
+  </action>
+</bullet>
+
+<!-- sequence型 微細変化テスト -->
+<bullet label="sequenceFine">
+  <action>
+    <wait>30</wait>
+    <accel>
+      <horizontal type="sequence">0.01</horizontal>
+      <vertical type="sequence">0.008</vertical>
+      <term>20</term>
+    </accel>
+    <wait>25</wait>
+    <accel>
+      <horizontal type="sequence">0.015</horizontal>
+      <vertical type="sequence">0.012</vertical>
+      <term>20</term>
+    </accel>
+    <wait>25</wait>
+    <accel>
+      <horizontal type="sequence">-0.005</horizontal>
+      <vertical type="sequence">0.02</vertical>
+      <term>20</term>
+    </accel>
+    <wait>25</wait>
+    <accel>
+      <horizontal type="sequence">0.025</horizontal>
+      <vertical type="sequence">-0.01</vertical>
+      <term>20</term>
+    </accel>
+  </action>
+</bullet>
+
+<!-- sequence型 高速連続テスト -->
+<bullet label="sequenceRapid">
+  <action>
+    <wait>25</wait>
+    <repeat>
+      <times>8</times>
+      <action>
+        <accel>
+          <horizontal type="sequence">0.03</horizontal>
+          <vertical type="sequence">0.025</vertical>
+          <term>8</term>
+        </accel>
+        <wait>10</wait>
+      </action>
+    </repeat>
+  </action>
+</bullet>
+
+<!-- 単発のabsolute/relativeとsequenceの比較 -->
+<bullet label="comparisonTest">
+  <action>
+    <wait>30</wait>
+    <!-- absolute型 -->
+    <accel>
+      <horizontal type="absolute">0.1</horizontal>
+      <vertical type="absolute">0.08</vertical>
+      <term>30</term>
+    </accel>
+    <wait>40</wait>
+    <!-- relative型 -->
+    <accel>
+      <horizontal type="relative">0.05</horizontal>
+      <vertical type="relative">0.04</vertical>
+      <term>30</term>
+    </accel>
+    <wait>40</wait>
+    <!-- sequence型 -->
+    <accel>
+      <horizontal type="sequence">0.05</horizontal>
+      <vertical type="sequence">0.04</vertical>
+      <term>30</term>
+    </accel>
+    <wait>40</wait>
+    <!-- もう一度sequence型（累積確認） -->
+    <accel>
+      <horizontal type="sequence">0.05</horizontal>
+      <vertical type="sequence">0.04</vertical>
+      <term>30</term>
+    </accel>
+  </action>
+</bullet>
+
+<!-- sequence型の長期間テスト -->
+<bullet label="sequenceLongTerm">
+  <action>
+    <wait>30</wait>
+    <accel>
+      <horizontal type="sequence">0.02</horizontal>
+      <vertical type="sequence">0.015</vertical>
+      <term>80</term>
+    </accel>
+    <wait>100</wait>
+    <accel>
+      <horizontal type="sequence">0.025</horizontal>
+      <vertical type="sequence">0.02</vertical>
+      <term>60</term>
+    </accel>
+    <wait>80</wait>
+    <accel>
+      <horizontal type="sequence">-0.01</horizontal>
+      <vertical type="sequence">0.03</vertical>
+      <term>100</term>
+    </accel>
+  </action>
+</bullet>
+
+<!-- sequence型の短期間テスト -->
+<bullet label="sequenceShortTerm">
+  <action>
+    <wait>25</wait>
+    <accel>
+      <horizontal type="sequence">0.15</horizontal>
+      <vertical type="sequence">0.12</vertical>
+      <term>5</term>
+    </accel>
+    <wait>10</wait>
+    <accel>
+      <horizontal type="sequence">0.1</horizontal>
+      <vertical type="sequence">0.08</vertical>
+      <term>3</term>
+    </accel>
+    <wait>8</wait>
+    <accel>
+      <horizontal type="sequence">-0.2</horizontal>
+      <vertical type="sequence">-0.15</vertical>
+      <term>2</term>
+    </accel>
+    <wait>5</wait>
+    <accel>
+      <horizontal type="sequence">0.18</horizontal>
+      <vertical type="sequence">0.14</vertical>
+      <term>4</term>
+    </accel>
+  </action>
+</bullet>
+
+<!-- メインアクション -->
+<action label="top">
+  <fire>
+    <direction type="absolute">0</direction>
+    <speed>2.0</speed>
+    <bulletRef label="sequenceHorizontalPositive"/>
+  </fire>
+  <wait>8</wait>
+  
+  <fire>
+    <direction type="absolute">30</direction>
+    <speed>2.0</speed>
+    <bulletRef label="sequenceVerticalPositive"/>
+  </fire>
+  <wait>8</wait>
+  
+  <fire>
+    <direction type="absolute">60</direction>
+    <speed>2.0</speed>
+    <bulletRef label="sequenceBothDirections"/>
+  </fire>
+  <wait>8</wait>
+  
+  <fire>
+    <direction type="absolute">90</direction>
+    <speed>2.0</speed>
+    <bulletRef label="sequenceNegative"/>
+  </fire>
+  <wait>8</wait>
+  
+  <fire>
+    <direction type="absolute">120</direction>
+    <speed>2.0</speed>
+    <bulletRef label="sequenceAlternating"/>
+  </fire>
+  <wait>8</wait>
+  
+  <fire>
+    <direction type="absolute">150</direction>
+    <speed>2.0</speed>
+    <bulletRef label="sequenceDramatic"/>
+  </fire>
+  <wait>8</wait>
+  
+  <fire>
+    <direction type="absolute">180</direction>
+    <speed>2.0</speed>
+    <bulletRef label="sequenceFine"/>
+  </fire>
+  <wait>8</wait>
+  
+  <fire>
+    <direction type="absolute">210</direction>
+    <speed>2.0</speed>
+    <bulletRef label="sequenceRapid"/>
+  </fire>
+  <wait>8</wait>
+  
+  <fire>
+    <direction type="absolute">240</direction>
+    <speed>2.0</speed>
+    <bulletRef label="comparisonTest"/>
+  </fire>
+  <wait>8</wait>
+  
+  <fire>
+    <direction type="absolute">270</direction>
+    <speed>2.0</speed>
+    <bulletRef label="sequenceLongTerm"/>
+  </fire>
+  <wait>8</wait>
+  
+  <fire>
+    <direction type="absolute">300</direction>
+    <speed>2.0</speed>
+    <bulletRef label="sequenceShortTerm"/>
+  </fire>
+</action>
+
+</bulletml>

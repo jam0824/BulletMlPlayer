@@ -1,0 +1,309 @@
+<?xml version="1.0" ?>
+<bulletml type="vertical">
+
+<!-- 波型accel（振動パターン） -->
+<bullet label="waveAccel">
+  <action>
+    <wait>30</wait>
+    <!-- 右に加速 -->
+    <accel>
+      <horizontal type="absolute">0.15</horizontal>
+      <term>25</term>
+    </accel>
+    <wait>30</wait>
+    <!-- 左に加速 -->
+    <accel>
+      <horizontal type="absolute">-0.2</horizontal>
+      <term>30</term>
+    </accel>
+    <wait>35</wait>
+    <!-- 再び右に加速 -->
+    <accel>
+      <horizontal type="absolute">0.18</horizontal>
+      <term>28</term>
+    </accel>
+    <wait>33</wait>
+    <!-- 最後に左に強く加速 -->
+    <accel>
+      <horizontal type="absolute">-0.25</horizontal>
+      <term>20</term>
+    </accel>
+  </action>
+</bullet>
+
+<!-- 螺旋型accel（sequence型連続使用） -->
+<bullet label="spiralAccel">
+  <action>
+    <wait>25</wait>
+    <repeat>
+      <times>6</times>
+      <action>
+        <accel>
+          <horizontal type="sequence">0.05</horizontal>
+          <vertical type="sequence">0.04</vertical>
+          <term>20</term>
+        </accel>
+        <wait>25</wait>
+      </action>
+    </repeat>
+  </action>
+</bullet>
+
+<!-- accel中にさらにaccel -->
+<bullet label="nestedAccel">
+  <action>
+    <wait>20</wait>
+    <!-- 最初の加速開始 -->
+    <accel>
+      <horizontal type="absolute">0.1</horizontal>
+      <vertical type="absolute">0.08</vertical>
+      <term>80</term>
+    </accel>
+    <wait>30</wait>
+    <!-- 途中で別の加速を重ねる -->
+    <accel>
+      <horizontal type="relative">0.06</horizontal>
+      <vertical type="relative">-0.04</vertical>
+      <term>40</term>
+    </accel>
+    <wait>60</wait>
+    <!-- さらに追加 -->
+    <accel>
+      <horizontal type="sequence">-0.05</horizontal>
+      <vertical type="sequence">0.07</vertical>
+      <term>35</term>
+    </accel>
+  </action>
+</bullet>
+
+<!-- 複雑な数式を使ったaccel -->
+<bullet label="formulaAccel">
+  <action>
+    <wait>35</wait>
+    <!-- パラメータを使った複雑な加速度計算 -->
+    <accel>
+      <horizontal type="absolute">$rank*0.1+0.05</horizontal>
+      <vertical type="absolute">$rand*0.2-0.1</vertical>
+      <term>50</term>
+    </accel>
+    <wait>60</wait>
+    <accel>
+      <horizontal type="relative">$rank*0.05</horizontal>
+      <vertical type="sequence">$rand*0.15-0.075</vertical>
+      <term>40</term>
+    </accel>
+  </action>
+</bullet>
+
+<!-- 全機能複合（accel + changeDirection + changeSpeed） -->
+<bullet label="fullComboAccel">
+  <action>
+    <wait>40</wait>
+    <!-- フェーズ1: 全て同時開始 -->
+    <accel>
+      <horizontal type="absolute">0.12</horizontal>
+      <vertical type="absolute">-0.08</vertical>
+      <term>60</term>
+    </accel>
+    <changeDirection>
+      <direction type="absolute">135</direction>
+      <term>60</term>
+    </changeDirection>
+    <changeSpeed>
+      <speed type="relative">1.5</speed>
+      <term>60</term>
+    </changeSpeed>
+    
+    <wait>80</wait>
+    
+    <!-- フェーズ2: sequence型で連続変化 -->
+    <accel>
+      <horizontal type="sequence">-0.1</horizontal>
+      <vertical type="sequence">0.15</vertical>
+      <term>45</term>
+    </accel>
+    <changeDirection>
+      <direction type="sequence">-60</direction>
+      <term>45</term>
+    </changeDirection>
+    <changeSpeed>
+      <speed type="sequence">-1.0</speed>
+      <term>45</term>
+    </changeSpeed>
+    
+    <wait>70</wait>
+    
+    <!-- フェーズ3: 最終調整 -->
+    <accel>
+      <horizontal type="relative">0.05</horizontal>
+      <vertical type="absolute">0.1</vertical>
+      <term>30</term>
+    </accel>
+    <changeDirection>
+      <direction type="aim">0</direction>
+      <term>30</term>
+    </changeDirection>
+  </action>
+</bullet>
+
+<!-- ブースト型加速（段階的な強化） -->
+<bullet label="boostAccel">
+  <action>
+    <wait>30</wait>
+    <repeat>
+      <times>5</times>
+      <action>
+        <!-- だんだん強くなる加速 -->
+        <accel>
+          <horizontal type="sequence">0.03</horizontal>
+          <vertical type="sequence">0.025</vertical>
+          <term>20</term>
+        </accel>
+        <wait>25</wait>
+      </action>
+    </repeat>
+  </action>
+</bullet>
+
+<!-- 重力効果型accel -->
+<bullet label="gravityAccel">
+  <action>
+    <wait>25</wait>
+    <!-- 初期上向き速度 -->
+    <changeSpeed>
+      <speed type="absolute">3.0</speed>
+      <term>1</term>
+    </changeSpeed>
+    <changeDirection>
+      <direction type="absolute">0</direction>
+      <term>1</term>
+    </changeDirection>
+    <wait>5</wait>
+    <!-- 重力のような下向き加速度 -->
+    <accel>
+      <vertical type="absolute">-0.1</vertical>
+      <term>100</term>
+    </accel>
+  </action>
+</bullet>
+
+<!-- 極端な加速度テスト -->
+<bullet label="extremeAccel">
+  <action>
+    <wait>30</wait>
+    <!-- 非常に強い加速度 -->
+    <accel>
+      <horizontal type="absolute">0.5</horizontal>
+      <vertical type="absolute">0.4</vertical>
+      <term>10</term>
+    </accel>
+    <wait>15</wait>
+    <!-- 非常に弱い加速度 -->
+    <accel>
+      <horizontal type="absolute">0.001</horizontal>
+      <vertical type="absolute">0.002</vertical>
+      <term>200</term>
+    </accel>
+  </action>
+</bullet>
+
+<!-- 1フレーム加速テスト -->
+<bullet label="instantAccel">
+  <action>
+    <wait>25</wait>
+    <!-- 1フレームのみの加速度 -->
+    <accel>
+      <horizontal type="absolute">0.2</horizontal>
+      <vertical type="absolute">0.15</vertical>
+      <term>1</term>
+    </accel>
+    <wait>5</wait>
+    <accel>
+      <horizontal type="sequence">-0.1</horizontal>
+      <vertical type="sequence">0.1</vertical>
+      <term>1</term>
+    </accel>
+    <wait>5</wait>
+    <accel>
+      <horizontal type="relative">0.05</horizontal>
+      <vertical type="relative">-0.05</vertical>
+      <term>1</term>
+    </accel>
+  </action>
+</bullet>
+
+<!-- メインアクション -->
+<action label="top">
+  <!-- 波型テスト -->
+  <fire>
+    <direction type="absolute">0</direction>
+    <speed>1.5</speed>
+    <bulletRef label="waveAccel"/>
+  </fire>
+  <wait>15</wait>
+  
+  <!-- 螺旋型テスト -->
+  <fire>
+    <direction type="absolute">45</direction>
+    <speed>1.8</speed>
+    <bulletRef label="spiralAccel"/>
+  </fire>
+  <wait>15</wait>
+  
+  <!-- ネストテスト -->
+  <fire>
+    <direction type="absolute">90</direction>
+    <speed>2.0</speed>
+    <bulletRef label="nestedAccel"/>
+  </fire>
+  <wait>15</wait>
+  
+  <!-- 数式テスト -->
+  <fire>
+    <direction type="absolute">135</direction>
+    <speed>2.2</speed>
+    <bulletRef label="formulaAccel"/>
+  </fire>
+  <wait>15</wait>
+  
+  <!-- 全機能複合テスト -->
+  <fire>
+    <direction type="absolute">180</direction>
+    <speed>1.2</speed>
+    <bulletRef label="fullComboAccel"/>
+  </fire>
+  <wait>15</wait>
+  
+  <!-- ブースト型テスト -->
+  <fire>
+    <direction type="absolute">225</direction>
+    <speed>1.0</speed>
+    <bulletRef label="boostAccel"/>
+  </fire>
+  <wait>15</wait>
+  
+  <!-- 重力型テスト -->
+  <fire>
+    <direction type="absolute">270</direction>
+    <speed>1.5</speed>
+    <bulletRef label="gravityAccel"/>
+  </fire>
+  <wait>15</wait>
+  
+  <!-- 極端値テスト -->
+  <fire>
+    <direction type="absolute">315</direction>
+    <speed>2.5</speed>
+    <bulletRef label="extremeAccel"/>
+  </fire>
+  <wait>15</wait>
+  
+  <!-- 1フレームテスト -->
+  <fire>
+    <direction type="absolute">30</direction>
+    <speed>2.0</speed>
+    <bulletRef label="instantAccel"/>
+  </fire>
+</action>
+
+</bulletml>

@@ -1,0 +1,265 @@
+<?xml version="1.0" ?>
+<bulletml type="vertical">
+
+<!-- 基本的なaccel: horizontal型のみ -->
+<bullet label="accelTest1">
+  <action>
+    <wait>30</wait>
+    <accel>
+      <horizontal type="absolute">0.1</horizontal>
+      <term>60</term>
+    </accel>
+  </action>
+</bullet>
+
+<!-- accel: vertical型のみ -->
+<bullet label="accelTest2">
+  <action>
+    <wait>30</wait>
+    <accel>
+      <vertical type="absolute">0.15</vertical>
+      <term>50</term>
+    </accel>
+  </action>
+</bullet>
+
+<!-- accel: horizontal + vertical 同時 -->
+<bullet label="accelTest3">
+  <action>
+    <wait>25</wait>
+    <accel>
+      <horizontal type="absolute">0.12</horizontal>
+      <vertical type="absolute">-0.08</vertical>
+      <term>70</term>
+    </accel>
+  </action>
+</bullet>
+
+<!-- accel: relative型 -->
+<bullet label="accelTest4">
+  <action>
+    <wait>30</wait>
+    <accel>
+      <horizontal type="relative">0.05</horizontal>
+      <vertical type="relative">0.1</vertical>
+      <term>45</term>
+    </accel>
+  </action>
+</bullet>
+
+<!-- accel: sequence型（連続変化） -->
+<bullet label="accelTest5">
+  <action>
+    <wait>30</wait>
+    <!-- 1回目: 基準値 + 0.08 -->
+    <accel>
+      <horizontal type="sequence">0.08</horizontal>
+      <vertical type="sequence">0.06</vertical>
+      <term>40</term>
+    </accel>
+    <wait>50</wait>
+    <!-- 2回目: 前回結果 + 0.04（累積） -->
+    <accel>
+      <horizontal type="sequence">0.04</horizontal>
+      <vertical type="sequence">-0.03</vertical>
+      <term>35</term>
+    </accel>
+  </action>
+</bullet>
+
+<!-- 複数回のaccel（段階的変化） -->
+<bullet label="accelTest6">
+  <action>
+    <wait>20</wait>
+    <!-- 第1段階: 右上方向の加速 -->
+    <accel>
+      <horizontal type="absolute">0.1</horizontal>
+      <vertical type="absolute">0.1</vertical>
+      <term>30</term>
+    </accel>
+    <wait>40</wait>
+    <!-- 第2段階: 左下方向の加速 -->
+    <accel>
+      <horizontal type="absolute">-0.15</horizontal>
+      <vertical type="absolute">-0.12</vertical>
+      <term>25</term>
+    </accel>
+    <wait>35</wait>
+    <!-- 第3段階: 相対的な調整 -->
+    <accel>
+      <horizontal type="relative">0.05</horizontal>
+      <vertical type="relative">0.08</vertical>
+      <term>40</term>
+    </accel>
+  </action>
+</bullet>
+
+<!-- accel + changeDirection の複合 -->
+<bullet label="accelDirectionTest">
+  <action>
+    <wait>25</wait>
+    <!-- 加速度と方向変更を同時実行 -->
+    <accel>
+      <horizontal type="absolute">0.12</horizontal>
+      <vertical type="absolute">0.08</vertical>
+      <term>50</term>
+    </accel>
+    <changeDirection>
+      <direction type="relative">45</direction>
+      <term>50</term>
+    </changeDirection>
+    <wait>70</wait>
+    <!-- 2回目の複合変更 -->
+    <accel>
+      <horizontal type="sequence">-0.08</horizontal>
+      <vertical type="sequence">0.1</vertical>
+      <term>40</term>
+    </accel>
+    <changeDirection>
+      <direction type="sequence">-30</direction>
+      <term>40</term>
+    </changeDirection>
+  </action>
+</bullet>
+
+<!-- accel + changeSpeed の複合 -->
+<bullet label="accelSpeedTest">
+  <action>
+    <wait>30</wait>
+    <!-- 加速度と速度変更を同時実行 -->
+    <accel>
+      <horizontal type="absolute">0.1</horizontal>
+      <vertical type="absolute">-0.05</vertical>
+      <term>60</term>
+    </accel>
+    <changeSpeed>
+      <speed type="absolute">3.5</speed>
+      <term>60</term>
+    </changeSpeed>
+    <wait>80</wait>
+    <!-- sequence型での複合変更 -->
+    <accel>
+      <horizontal type="sequence">0.06</horizontal>
+      <vertical type="sequence">0.08</vertical>
+      <term>45</term>
+    </accel>
+    <changeSpeed>
+      <speed type="sequence">-1.0</speed>
+      <term>45</term>
+    </changeSpeed>
+  </action>
+</bullet>
+
+<!-- 短期間高強度accel -->
+<bullet label="shortAccelTest">
+  <action>
+    <wait>25</wait>
+    <!-- 短期間で強い加速 -->
+    <accel>
+      <horizontal type="absolute">0.3</horizontal>
+      <vertical type="absolute">0.25</vertical>
+      <term>15</term>
+    </accel>
+    <wait>25</wait>
+    <!-- 逆方向の短期間加速 -->
+    <accel>
+      <horizontal type="absolute">-0.2</horizontal>
+      <vertical type="absolute">-0.2</vertical>
+      <term>10</term>
+    </accel>
+  </action>
+</bullet>
+
+<!-- 長期間低強度accel -->
+<bullet label="longAccelTest">
+  <action>
+    <wait>20</wait>
+    <!-- 長期間でゆっくりとした加速 -->
+    <accel>
+      <horizontal type="absolute">0.02</horizontal>
+      <vertical type="absolute">0.03</vertical>
+      <term>120</term>
+    </accel>
+    <wait>140</wait>
+    <!-- sequence型での長期間変更 -->
+    <accel>
+      <horizontal type="sequence">0.01</horizontal>
+      <vertical type="sequence">-0.02</vertical>
+      <term>100</term>
+    </accel>
+  </action>
+</bullet>
+
+<!-- メインアクション -->
+<action label="top">
+  <fire>
+    <direction type="absolute">0</direction>
+    <speed>2.0</speed>
+    <bulletRef label="accelTest1"/>
+  </fire>
+  <wait>10</wait>
+  
+  <fire>
+    <direction type="absolute">30</direction>
+    <speed>2.2</speed>
+    <bulletRef label="accelTest2"/>
+  </fire>
+  <wait>10</wait>
+  
+  <fire>
+    <direction type="absolute">60</direction>
+    <speed>2.5</speed>
+    <bulletRef label="accelTest3"/>
+  </fire>
+  <wait>10</wait>
+  
+  <fire>
+    <direction type="absolute">90</direction>
+    <speed>2.3</speed>
+    <bulletRef label="accelTest4"/>
+  </fire>
+  <wait>10</wait>
+  
+  <fire>
+    <direction type="absolute">120</direction>
+    <speed>2.1</speed>
+    <bulletRef label="accelTest5"/>
+  </fire>
+  <wait>10</wait>
+  
+  <fire>
+    <direction type="absolute">150</direction>
+    <speed>2.4</speed>
+    <bulletRef label="accelTest6"/>
+  </fire>
+  <wait>10</wait>
+  
+  <fire>
+    <direction type="absolute">180</direction>
+    <speed>2.6</speed>
+    <bulletRef label="accelDirectionTest"/>
+  </fire>
+  <wait>10</wait>
+  
+  <fire>
+    <direction type="absolute">210</direction>
+    <speed>2.2</speed>
+    <bulletRef label="accelSpeedTest"/>
+  </fire>
+  <wait>10</wait>
+  
+  <fire>
+    <direction type="absolute">240</direction>
+    <speed>2.8</speed>
+    <bulletRef label="shortAccelTest"/>
+  </fire>
+  <wait>10</wait>
+  
+  <fire>
+    <direction type="absolute">270</direction>
+    <speed>2.0</speed>
+    <bulletRef label="longAccelTest"/>
+  </fire>
+</action>
+
+</bulletml>

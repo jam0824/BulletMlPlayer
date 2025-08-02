@@ -286,7 +286,10 @@ namespace Tests
                 "sequenceSpeedTest.xml",
                 "changeDirection.xml",
                 "changeDirectionAdvanced.xml",
-                "sequenceDirectionTest.xml"
+                "sequenceDirectionTest.xml",
+                "accel.xml",
+                "accelAdvanced.xml",
+                "sequenceAccelTest.xml"
             };
 
             foreach (string fileName in expectedFiles)
@@ -464,6 +467,182 @@ namespace Tests
         }
 
         /// <summary>
+        /// accel.xmlの読み込みとパースのテスト
+        /// </summary>
+        [Test]
+        public void Accel_LoadAndParse_Success()
+        {
+            // Arrange & Act
+            string xmlContent = LoadXmlFile("accel.xml");
+            var document = m_Parser.Parse(xmlContent);
+
+            // Assert
+            Assert.IsNotNull(document, "accel.xmlが正しくパースされるべき");
+            Assert.IsNotNull(document.RootElement, "ルート要素が存在するべき");
+            Assert.IsNotNull(document.GetTopAction(), "トップアクションが存在するべき");
+            
+            // 弾の定義が存在することを確認
+            var accelTest1 = document.GetLabeledBullet("accelTest1");
+            Assert.IsNotNull(accelTest1, "accelTest1弾が定義されているべき");
+        }
+
+        /// <summary>
+        /// accel sequence型の累積変化テスト
+        /// </summary>
+        [Test]
+        public void Accel_SequenceType_CumulativeChange()
+        {
+            // Arrange
+            string xmlContent = LoadXmlFile("accel.xml");
+            var document = m_Parser.Parse(xmlContent);
+            var bullet = document.GetLabeledBullet("accelTest5");
+            var topAction = bullet.GetChild(BulletMLElementType.action);
+
+            var testBullet = new BulletMLBullet(
+                Vector3.zero, 0f, 2.0f, CoordinateSystem.YZ, true
+            );
+
+            var actionRunner = new BulletMLActionRunner(topAction);
+            testBullet.PushAction(actionRunner);
+
+            int accelCount = 0;
+            float firstHorizontalTarget = 0f;
+            float firstVerticalTarget = 0f;
+            float secondHorizontalTarget = 0f;
+            float secondVerticalTarget = 0f;
+
+            // Act & Assert
+            for (int frame = 0; frame < 200; frame++)
+            {
+                m_Executor.ExecuteCurrentAction(testBullet);
+                testBullet.UpdateChanges(1f / 60f);
+
+                // accelコマンドの実行を検出
+                if (testBullet.AccelInfo.IsActive && testBullet.AccelInfo.CurrentFrame == 1)
+                {
+                    accelCount++;
+                    if (accelCount == 1)
+                    {
+                        // 1回目のaccel: sequence型で+0.08, +0.06
+                        firstHorizontalTarget = testBullet.AccelInfo.HorizontalAccel;
+                        firstVerticalTarget = testBullet.AccelInfo.VerticalAccel;
+                        Debug.Log($"Frame {frame}: 1回目のaccel、Horizontal: {firstHorizontalTarget}, Vertical: {firstVerticalTarget}");
+                        // 初期値0 + 0.08 = 0.08, 0 + 0.06 = 0.06
+                        Assert.AreEqual(0.08f, firstHorizontalTarget, 0.01f, "1回目のsequence accel horizontal");
+                        Assert.AreEqual(0.06f, firstVerticalTarget, 0.01f, "1回目のsequence accel vertical");
+                    }
+                    else if (accelCount == 2)
+                    {
+                        // 2回目のaccel: sequence型で+0.04, -0.03（累積）
+                        secondHorizontalTarget = testBullet.AccelInfo.HorizontalAccel;
+                        secondVerticalTarget = testBullet.AccelInfo.VerticalAccel;
+                        Debug.Log($"Frame {frame}: 2回目のaccel、Horizontal: {secondHorizontalTarget}, Vertical: {secondVerticalTarget}");
+                        // 前回結果0.08 + 0.04 = 0.12, 0.06 + (-0.03) = 0.03
+                        Assert.AreEqual(0.12f, secondHorizontalTarget, 0.01f, "sequence型でhorizontal加速度が累積されるべき");
+                        Assert.AreEqual(0.03f, secondVerticalTarget, 0.01f, "sequence型でvertical加速度が累積されるべき");
+                        break;
+                    }
+                }
+            }
+
+            Assert.AreEqual(2, accelCount, "2回のaccelが実行されるべき");
+        }
+
+        /// <summary>
+        /// sequenceAccelTest.xmlの詳細テスト
+        /// </summary>
+        [Test]
+        public void SequenceAccelTest_DetailedTest_Success()
+        {
+            // Arrange
+            string xmlContent = LoadXmlFile("sequenceAccelTest.xml");
+            var document = m_Parser.Parse(xmlContent);
+            var bullet = document.GetLabeledBullet("sequenceBothDirections");
+            var topAction = bullet.GetChild(BulletMLElementType.action);
+
+            var testBullet = new BulletMLBullet(
+                Vector3.zero, 0f, 2.0f, CoordinateSystem.YZ, true
+            );
+
+            var actionRunner = new BulletMLActionRunner(topAction);
+            testBullet.PushAction(actionRunner);
+
+            List<float> horizontalTargets = new List<float>();
+            List<float> verticalTargets = new List<float>();
+
+            // Act
+            for (int frame = 0; frame < 250; frame++)
+            {
+                m_Executor.ExecuteCurrentAction(testBullet);
+                testBullet.UpdateChanges(1f / 60f);
+
+                // accelの開始フレームを検出
+                if (testBullet.AccelInfo.IsActive && testBullet.AccelInfo.CurrentFrame == 1)
+                {
+                    horizontalTargets.Add(testBullet.AccelInfo.HorizontalAccel);
+                    verticalTargets.Add(testBullet.AccelInfo.VerticalAccel);
+                    Debug.Log($"Frame {frame}: accel開始、Horizontal: {testBullet.AccelInfo.HorizontalAccel}, Vertical: {testBullet.AccelInfo.VerticalAccel}");
+                }
+            }
+
+            // Assert
+            Assert.AreEqual(3, horizontalTargets.Count, "3回のaccelが実行されるべき");
+            Assert.AreEqual(0.05f, horizontalTargets[0], 0.01f, "1回目: 0 + 0.05 = 0.05");
+            Assert.AreEqual(0.08f, horizontalTargets[1], 0.01f, "2回目: 0.05 + 0.03 = 0.08");
+            Assert.AreEqual(0.16f, horizontalTargets[2], 0.01f, "3回目: 0.08 + 0.08 = 0.16");
+            
+            Assert.AreEqual(0.04f, verticalTargets[0], 0.01f, "1回目: 0 + 0.04 = 0.04");
+            Assert.AreEqual(0.1f, verticalTargets[1], 0.01f, "2回目: 0.04 + 0.06 = 0.1");
+            Assert.AreEqual(0.08f, verticalTargets[2], 0.01f, "3回目: 0.1 + (-0.02) = 0.08");
+        }
+
+        /// <summary>
+        /// accelAdvanced.xmlの複合機能テスト
+        /// </summary>
+        [Test]
+        public void AccelAdvanced_ComplexFeatures_Success()
+        {
+            // Arrange
+            string xmlContent = LoadXmlFile("accelAdvanced.xml");
+            var document = m_Parser.Parse(xmlContent);
+            var bullet = document.GetLabeledBullet("fullComboAccel");
+            var topAction = bullet.GetChild(BulletMLElementType.action);
+
+            var testBullet = new BulletMLBullet(
+                Vector3.zero, 0f, 2.0f, CoordinateSystem.YZ, true
+            );
+
+            var actionRunner = new BulletMLActionRunner(topAction);
+            testBullet.PushAction(actionRunner);
+
+            bool hasAccel = false;
+            bool hasDirectionChange = false;
+            bool hasSpeedChange = false;
+
+            // Act
+            for (int frame = 0; frame < 300; frame++)
+            {
+                m_Executor.ExecuteCurrentAction(testBullet);
+                testBullet.UpdateChanges(1f / 60f);
+
+                if (testBullet.AccelInfo.IsActive) hasAccel = true;
+                if (testBullet.DirectionChange.IsActive) hasDirectionChange = true;
+                if (testBullet.SpeedChange.IsActive) hasSpeedChange = true;
+
+                // 全ての機能が同時に動作することを確認
+                if (hasAccel && hasDirectionChange && hasSpeedChange)
+                {
+                    break;
+                }
+            }
+
+            // Assert
+            Assert.IsTrue(hasAccel, "accelが実行されるべき");
+            Assert.IsTrue(hasDirectionChange, "changeDirectionが実行されるべき");
+            Assert.IsTrue(hasSpeedChange, "changeSpeedが実行されるべき");
+        }
+
+        /// <summary>
         /// 全XMLファイルのパース成功テスト
         /// </summary>
         [Test]
@@ -475,7 +654,10 @@ namespace Tests
                 "sequenceSpeedTest.xml",
                 "changeDirection.xml",
                 "changeDirectionAdvanced.xml",
-                "sequenceDirectionTest.xml"
+                "sequenceDirectionTest.xml",
+                "accel.xml",
+                "accelAdvanced.xml",
+                "sequenceAccelTest.xml"
             };
 
             foreach (string fileName in xmlFiles)

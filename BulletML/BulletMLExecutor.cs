@@ -815,10 +815,9 @@ namespace BulletML
                     return value;
 
                 case AccelType.relative:
-                    // 現在の弾の速度との相対値
-                    Vector3 currentVelocity = _bullet.GetVelocityVector();
-                    float currentComponent = _isHorizontal ? currentVelocity.x : currentVelocity.y;
-                    return currentComponent + value;
+                    // 現在の加速度との相対値
+                    float currentAccel = _isHorizontal ? _bullet.AccelInfo.HorizontalAccel : _bullet.AccelInfo.VerticalAccel;
+                    return currentAccel + value;
 
                 case AccelType.sequence:
                     // 連続的に変化する加速度を計算
