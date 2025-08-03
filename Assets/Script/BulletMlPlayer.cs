@@ -19,6 +19,7 @@ public class BulletMlPlayer : MonoBehaviour
     [SerializeField] private Vector3 m_ShooterOffset = new Vector3(0f, 2f, 0f);
     [SerializeField] private float m_RankValue = 0.5f;
     [SerializeField] private float m_DefaultSpeed = 1f; // デフォルト速度
+    [SerializeField] private float m_WaitTimeMultiplier = 1.0f; // wait時間の倍率（小数許容）
     [SerializeField] private bool m_AutoStart = true;
 
     [Header("弾のプレハブ")]
@@ -150,12 +151,14 @@ public class BulletMlPlayer : MonoBehaviour
             // （SetDocumentがXMLのtypeに基づいて座標系を変更するため）
             m_Executor.SetCoordinateSystem(m_CoordinateSystem);
             m_Executor.SetDefaultSpeed(m_DefaultSpeed);
+            m_Executor.WaitTimeMultiplier = m_WaitTimeMultiplier;
 
             if (m_EnableDebugLog)
             {
                 Debug.Log($"BulletMLが読み込まれました。タイプ: {m_Document.Type}");
                 Debug.Log($"座標系を強制設定: {m_CoordinateSystem}");
                 Debug.Log($"デフォルト速度を設定: {m_DefaultSpeed}");
+                Debug.Log($"wait倍率を設定: {m_WaitTimeMultiplier}");
             }
         }
         catch (System.Exception ex)

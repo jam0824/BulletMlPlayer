@@ -510,3 +510,8 @@ Examples
     - 5フレームの場合、5フレーム待ってから次のループを実行
     - 数フレームの誤差は許容
 - ループ時に前からあった弾は消さない
+
+## waitの定数倍処理
+- BulletMlPlayerのinspectorからxmlのwaitを定数倍できる
+- 定数は小数可である
+- 計算後のwaitのフレームはRoundToIntで丸められる

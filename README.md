@@ -26,6 +26,7 @@ UnityでBulletML弾幕パターンを実行するための完全なシステム�
 - ✅ **ビジュアルデバッグ**: Scene Viewでの弾道可視化
 - ✅ **複雑弾幕対応**: ホーミングレーザー等の高度なパターン実装
 - ✅ **自動ループ機能**: XML実行完了後の設定可能な遅延でのパターン繰り返し
+- ✅ **wait倍率調整**: waitコマンドの時間を小数倍率で柔軟に調整可能
 
 ## 🚀 クイックスタート
 
@@ -72,6 +73,7 @@ bulletMLPlayer.StartBulletML();
 - **Coordinate System**: `XY`（縦シューティング）または`YZ`（横シューティング）
 - **Target Tag**: 狙い撃ちする対象のタグ（デフォルト: "Player"）
 - **Default Speed**: speed省略時のデフォルト速度
+- **Wait Time Multiplier**: waitコマンドの時間倍率（小数許容、デフォルト: 1.0）
 - **Enable Loop**: XML実行完了後に自動的にループするかの設定
 - **Loop Delay Frames**: XML実行完了からループ開始までの待機フレーム数
 
@@ -105,6 +107,29 @@ bulletMLPlayer.StartBulletML();
 // 実行時にループ設定を変更
 bulletMLPlayer.SetLoopEnabled(false);          // ループを無効化
 bulletMLPlayer.SetLoopDelayFrames(60);         // 1秒間隔に変更
+```
+
+#### wait倍率機能の使用例
+```csharp
+// wait時間倍率の設定（Inspectorでも設定可能）
+bulletMLPlayer.WaitTimeMultiplier = 2.0f;      // 2倍の速度（wait時間が2倍に）
+bulletMLPlayer.WaitTimeMultiplier = 0.5f;      // 半分の速度（wait時間が半分に）
+bulletMLPlayer.WaitTimeMultiplier = 1.5f;      // 1.5倍の速度（小数も設定可能）
+
+// 実行中にも変更可能
+bulletMLPlayer.LoadBulletML(xmlContent);
+bulletMLPlayer.StartBulletML();
+// → XMLの<wait>30</wait> が倍率2.0で60フレームになる
+
+// ゲーム中の難易度調整に活用
+if (gameMode == "Easy") 
+{
+    bulletMLPlayer.WaitTimeMultiplier = 1.5f;   // 待ち時間を1.5倍に（ゆっくり）
+}
+else if (gameMode == "Hard")
+{
+    bulletMLPlayer.WaitTimeMultiplier = 0.7f;   // 待ち時間を0.7倍に（高速）
+}
 ```
 
 ## 📖 BulletML仕様

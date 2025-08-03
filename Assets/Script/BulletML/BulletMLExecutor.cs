@@ -17,6 +17,7 @@ namespace BulletML
         [SerializeField] private float m_LastSequenceHorizontalAccel;
         [SerializeField] private float m_LastSequenceVerticalAccel;
         [SerializeField] private float m_DefaultSpeed = 1f; // デフォルト速度
+        [SerializeField] private float m_WaitTimeMultiplier = 1.0f; // wait時間の倍率
         
         // changeSpeed内専用のsequence値
         [SerializeField] private float m_LastChangeSpeedSequence = 0f;
@@ -30,6 +31,11 @@ namespace BulletML
         public BulletMLDocument Document => m_Document;
         public Vector3 TargetPosition => m_TargetPosition;
         public CoordinateSystem CoordinateSystem => m_CoordinateSystem;
+        public float WaitTimeMultiplier 
+        { 
+            get => m_WaitTimeMultiplier; 
+            set => m_WaitTimeMultiplier = value; 
+        }
 
         public BulletMLExecutor()
         {
@@ -589,7 +595,10 @@ namespace BulletML
             // パラメータを設定
             m_ExpressionEvaluator.SetParameters(_actionRunner.Parameters);
             
-            int waitFrames = Mathf.RoundToInt(EvaluateExpression(_waitElement.Value));
+            // XML値を評価してwait倍率を適用
+            float rawWaitValue = EvaluateExpression(_waitElement.Value);
+            float adjustedWaitValue = rawWaitValue * m_WaitTimeMultiplier;
+            int waitFrames = Mathf.RoundToInt(adjustedWaitValue);
             _actionRunner.SetWaitFrames(waitFrames);
             
             return true;

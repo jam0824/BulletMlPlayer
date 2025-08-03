@@ -805,10 +805,153 @@ public bool IsXmlExecutionCompleted()
 
 ---
 
+## ⏱️ wait倍率機能実装詳細
+
+### 概要
+
+wait倍率機能は、XMLの`<wait>`コマンドの待機時間を動的に調整する機能です。  
+難易度調整やデバッグ効率化のために実行時に弾幕の速度を制御できます。
+
+### 実装アーキテクチャ
+
+```csharp
+public class BulletMlPlayer : MonoBehaviour
+{
+    [Header("Settings")]
+    [SerializeField] private float m_WaitTimeMultiplier = 1.0f;
+}
+
+public class BulletMLExecutor
+{
+    [SerializeField] private float m_WaitTimeMultiplier = 1.0f;
+    
+    public float WaitTimeMultiplier 
+    { 
+        get => m_WaitTimeMultiplier; 
+        set => m_WaitTimeMultiplier = value; 
+    }
+}
+```
+
+### 核心実装
+
+#### 1. wait時間計算処理
+
+```csharp
+private bool ExecuteWaitCommand(BulletMLElement _waitElement, 
+                               BulletMLBullet _bullet, 
+                               BulletMLActionRunner _actionRunner)
+{
+    // パラメータを設定
+    m_ExpressionEvaluator.SetParameters(_actionRunner.Parameters);
+    
+    // XML値を評価してwait倍率を適用
+    float rawWaitValue = EvaluateExpression(_waitElement.Value);
+    float adjustedWaitValue = rawWaitValue * m_WaitTimeMultiplier;
+    int waitFrames = Mathf.RoundToInt(adjustedWaitValue);
+    _actionRunner.SetWaitFrames(waitFrames);
+    
+    return true;
+}
+```
+
+#### 2. 倍率の連携処理
+
+```csharp
+public void LoadBulletML(string _xmlContent)
+{
+    try
+    {
+        m_Document = m_Parser.Parse(_xmlContent);
+        m_Executor.SetDocument(m_Document);
+        
+        // Inspector設定を強制適用
+        m_Executor.SetCoordinateSystem(m_CoordinateSystem);
+        m_Executor.SetDefaultSpeed(m_DefaultSpeed);
+        m_Executor.WaitTimeMultiplier = m_WaitTimeMultiplier; // 倍率設定
+    }
+    catch (System.Exception ex)
+    {
+        Debug.LogError($"BulletMLの読み込みに失敗しました: {ex.Message}");
+    }
+}
+```
+
+### 計算仕様
+
+#### 数値処理
+
+| 段階 | 処理 | 例 |
+|------|------|-----|
+| **1. XML値評価** | `EvaluateExpression()` | `"30"` → `30.0f` |
+| **2. 倍率適用** | `値 × 倍率` | `30.0f × 1.5f = 45.0f` |
+| **3. 四捨五入** | `Mathf.RoundToInt()` | `45.0f → 45` |
+| **4. フレーム設定** | `SetWaitFrames()` | `45フレーム待機` |
+
+#### 小数処理の詳細
+
+```csharp
+// Unityの四捨五入仕様
+Mathf.RoundToInt(4.5f)  // → 4 (偶数寄り)
+Mathf.RoundToInt(5.5f)  // → 6 (偶数寄り)
+Mathf.RoundToInt(4.6f)  // → 5 (通常の四捨五入)
+Mathf.RoundToInt(4.4f)  // → 4 (通常の四捨五入)
+```
+
+### API設計
+
+#### 公開プロパティ
+
+```csharp
+// BulletMlPlayer
+public float WaitTimeMultiplier 
+{
+    get => m_WaitTimeMultiplier;
+    set 
+    {
+        m_WaitTimeMultiplier = value;
+        if (m_Executor != null)
+            m_Executor.WaitTimeMultiplier = value;
+    }
+}
+```
+
+#### Inspector連携
+
+```csharp
+[Header("Settings")]
+[Tooltip("waitコマンドの時間倍率（小数許容）")]
+[Range(0.0f, 99.9f)]
+[SerializeField] private float m_WaitTimeMultiplier = 1.0f;
+```
+
+### 実装上の考慮事項
+
+#### パフォーマンス
+
+- **軽量な乗算**: 単純な浮動小数点乗算のみ
+- **一回設定**: XML読み込み時の一回設定で済む
+- **メモリ効率**: フィールド一つのみ追加
+
+#### 堅牢性
+
+- **範囲制限**: Inspector上で0.0-99.9に制限
+- **デフォルト値**: 1.0で無変更動作を保証
+- **実行時変更**: ゲーム実行中の動的変更対応
+
+#### テスト性
+
+- **予測可能**: 単純な乗算なので結果が予測しやすい
+- **境界値テスト**: 0.0, 1.0, 2.0等の境界値でテスト
+- **小数テスト**: 1.5, 1.7等の小数倍率でのテスト
+
+---
+
 ## 🔮 今後の拡張
 
 ### 短期計画
 - [x] 自動ループ機能実装
+- [x] wait倍率機能実装
 - [ ] WebGL対応最適化
 - [ ] モバイル向けパフォーマンス調整
 - [ ] VFXGraph統合
