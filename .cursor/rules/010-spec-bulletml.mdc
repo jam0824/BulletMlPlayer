@@ -515,3 +515,8 @@ Examples
 - BulletMlPlayerのinspectorからxmlのwaitを定数倍できる
 - 定数は小数可である
 - 計算後のwaitのフレームはRoundToIntで丸められる
+
+## 弾の角度のオフセット
+- BulletMlPlayerのinspectorから、発射される弾の角度のオフセットを設定できる
+- オフセットは小数可である
+- ChageDirectionなどにも適用される

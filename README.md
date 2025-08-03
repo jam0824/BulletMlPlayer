@@ -27,6 +27,7 @@ UnityでBulletML弾幕パターンを実行するための完全なシステム�
 - ✅ **複雑弾幕対応**: ホーミングレーザー等の高度なパターン実装
 - ✅ **自動ループ機能**: XML実行完了後の設定可能な遅延でのパターン繰り返し
 - ✅ **wait倍率調整**: waitコマンドの時間を小数倍率で柔軟に調整可能
+- ✅ **角度オフセット**: 全弾の角度に一定値を加算して弾幕の向きを統一的に調整
 
 ## 🚀 クイックスタート
 
@@ -74,6 +75,7 @@ bulletMLPlayer.StartBulletML();
 - **Target Tag**: 狙い撃ちする対象のタグ（デフォルト: "Player"）
 - **Default Speed**: speed省略時のデフォルト速度
 - **Wait Time Multiplier**: waitコマンドの時間倍率（小数許容、デフォルト: 1.0）
+- **Angle Offset**: 全弾の角度にオフセットを加算（小数許容、デフォルト: 0.0）
 - **Enable Loop**: XML実行完了後に自動的にループするかの設定
 - **Loop Delay Frames**: XML実行完了からループ開始までの待機フレーム数
 
@@ -130,6 +132,32 @@ else if (gameMode == "Hard")
 {
     bulletMLPlayer.WaitTimeMultiplier = 0.7f;   // 待ち時間を0.7倍に（高速）
 }
+```
+
+#### 角度オフセット機能の使用例
+```csharp
+// 角度オフセットの設定（Inspectorでも設定可能）
+bulletMLPlayer.AngleOffset = 90.0f;         // 90度オフセット（全弾が右方向に）
+bulletMLPlayer.AngleOffset = -45.0f;        // -45度オフセット（全弾が左斜め上に）
+bulletMLPlayer.AngleOffset = 22.5f;         // 22.5度オフセット（小数も設定可能）
+
+// 実行中にも変更可能
+bulletMLPlayer.LoadBulletML(xmlContent);
+bulletMLPlayer.StartBulletML();
+// → XMLの<direction>180</direction> が90度オフセットで270度になる
+
+// ゲーム中の弾幕向き調整に活用
+if (playerPosition.x > screenCenter.x) 
+{
+    bulletMLPlayer.AngleOffset = -30.0f;     // プレイヤーが右側なら左向きに調整
+}
+else 
+{
+    bulletMLPlayer.AngleOffset = 30.0f;      // プレイヤーが左側なら右向きに調整
+}
+
+// 360度超えは自動的に正規化
+bulletMLPlayer.AngleOffset = 450.0f;        // 450度 → 90度に正規化
 ```
 
 ## 📖 BulletML仕様

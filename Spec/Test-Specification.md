@@ -681,11 +681,106 @@ UnityEngine.Debug.Log($"ループ開始検知: フレーム{i}");
 
 ---
 
+## 🎯 角度オフセット機能テスト
+
+### EditModeテスト
+
+#### BulletMLAngleOffsetTests.cs
+**テスト数**: 8個  
+**テスト戦略**: 全direction typeの包括的テストと境界値テスト
+
+```csharp
+[Test] AngleOffset_DefaultValue_NoChange()
+[Test] AngleOffset_AbsoluteType_AddsOffset()
+[Test] AngleOffset_RelativeType_AddsOffset()
+[Test] AngleOffset_SequenceType_AddsOffset()
+[Test] AngleOffset_AimType_AddsOffset()
+[Test] AngleOffset_Over360_Normalized()
+[Test] AngleOffset_DecimalValue_Applied()
+[Test] AngleOffset_ChangeDirection_Applied()
+```
+
+**主要テストケース:**
+- **デフォルト動作**: オフセット0.0での無変更動作確認
+- **全direction type**: absolute、relative、aim、sequence全対応確認
+- **正規化処理**: 360度超えでの正規化動作確認
+- **小数オフセット**: 22.5度等の小数オフセット適用確認
+- **changeDirection**: changeDirectionコマンドでのオフセット適用確認
+
+### テスト詳細
+
+#### direction type別テスト
+
+```csharp
+// absolute type
+Assert.AreEqual(270f, bullet.Direction); // XML:180, オフセット:90 → 270
+
+// relative type  
+Assert.AreEqual(165f, bullet.Direction); // 元角度:90, XML:30, オフセット:45 → 165
+
+// aim type
+Assert.AreEqual(75f, bullet.Direction);  // 狙い:0, XML:15, オフセット:60 → 75
+
+// sequence type (重複適用防止)
+Assert.AreEqual(40f, bullet1.Direction); // 1回目: 0+10+30 = 40
+Assert.AreEqual(50f, bullet2.Direction); // 2回目: 10+10+30 = 50
+```
+
+#### 境界値テスト
+
+| XMLの角度 | オフセット | 期待値 | 計算過程 |
+|----------|----------|-------|----------|
+| 180 | 0.0 | 180 | 180+0=180 |
+| 180 | 90.0 | 270 | 180+90=270 |
+| 90 | 45.0 | 135 | 90+45=135 |
+| 300 | 120.0 | 60 | 300+120=420→60（正規化） |
+| 100 | 22.5 | 122.5 | 100+22.5=122.5（小数） |
+
+#### sequence typeでの重複適用防止テスト
+
+**問題の再現:**
+```csharp
+// 修正前の問題: オフセットが重複適用される
+// 1回目: m_LastSequenceDirection=0 → sequence処理→10 → オフセット適用→40 → ExecuteFireCommandで40に上書き
+// 2回目: m_LastSequenceDirection=40 → sequence処理→50 → オフセット適用→80 ❌
+```
+
+**修正後の動作:**
+```csharp
+// 修正後: sequence typeでは上書きスキップ
+// 1回目: m_LastSequenceDirection=0 → sequence処理→10 → オフセット適用→40 → 上書きスキップ
+// 2回目: m_LastSequenceDirection=10 → sequence処理→20 → オフセット適用→50 ✅
+```
+
+### changeDirectionテスト
+
+```csharp
+// changeDirectionでのオフセット適用確認
+<changeDirection>
+    <direction type="absolute">90</direction>
+    <term>1</term>
+</changeDirection>
+
+// オフセット45度設定時のターゲット方向
+Assert.AreEqual(135f, directionChange.TargetValue); // 90+45=135
+```
+
+#### 角度オフセット機能テストカバレッジ
+
+| メソッド | テストケース数 | カバレッジ |
+|---------|-------------|----------|
+| `CalculateDirection()` | 8 | 100% |
+| `AngleOffset` プロパティ | 8 | 100% |
+| **合計** | **8** | **100%** |
+
+---
+
 ## 🚀 テスト改善計画
 
 ### 短期計画
 - [x] ループ機能テスト実装（13個のテストケース追加）
 - [x] wait倍率機能テスト実装（6個のテストケース追加）
+- [x] 角度オフセット機能テスト実装（8個のテストケース追加）
 - [ ] PlayModeテストの拡充
 - [ ] パフォーマンステストの自動化
 - [ ] カバレッジ100%達成

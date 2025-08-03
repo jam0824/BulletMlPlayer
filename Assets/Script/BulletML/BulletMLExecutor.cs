@@ -18,6 +18,7 @@ namespace BulletML
         [SerializeField] private float m_LastSequenceVerticalAccel;
         [SerializeField] private float m_DefaultSpeed = 1f; // デフォルト速度
         [SerializeField] private float m_WaitTimeMultiplier = 1.0f; // wait時間の倍率
+        [SerializeField] private float m_AngleOffset = 0.0f; // 全弾の角度にオフセットを加算
         
         // changeSpeed内専用のsequence値
         [SerializeField] private float m_LastChangeSpeedSequence = 0f;
@@ -35,6 +36,11 @@ namespace BulletML
         { 
             get => m_WaitTimeMultiplier; 
             set => m_WaitTimeMultiplier = value; 
+        }
+        public float AngleOffset 
+        { 
+            get => m_AngleOffset; 
+            set => m_AngleOffset = value; 
         }
 
         public BulletMLExecutor()
@@ -146,8 +152,10 @@ namespace BulletML
 
             // direction要素を処理
             var directionElement = _fireElement.GetChild(BulletMLElementType.direction);
+            bool isSequenceType = false;
             if (directionElement != null)
             {
+                isSequenceType = directionElement.GetDirectionType() == DirectionType.sequence;
                 direction = CalculateDirection(directionElement, _sourceBullet, false, _overrideParameters);
             }
             else
@@ -160,11 +168,11 @@ namespace BulletML
                 if (toTarget.magnitude < 0.001f)
                 {
                     Debug.LogWarning("fire direction省略: シューターとターゲットが同じ位置です。デフォルト方向を使用します。");
-                    direction = 0f; // デフォルト方向（上方向）
+                    direction = NormalizeAngle(0f + m_AngleOffset); // デフォルト方向（上方向）
                 }
                 else
                 {
-                    direction = CalculateAngleFromVector(toTarget, m_CoordinateSystem);
+                    direction = NormalizeAngle(CalculateAngleFromVector(toTarget, m_CoordinateSystem) + m_AngleOffset);
                 }
             }
 
@@ -228,7 +236,11 @@ namespace BulletML
             }
 
             // シーケンス値を更新
-            m_LastSequenceDirection = direction;
+            // sequence typeの場合はCalculateDirection内で既に更新済み
+            if (!isSequenceType)
+            {
+                m_LastSequenceDirection = direction;
+            }
             m_LastSequenceSpeed = speed;
 
             newBullets.Add(newBullet);
@@ -284,18 +296,19 @@ namespace BulletML
                     if (toTarget.magnitude < 0.001f)
                     {
                         Debug.LogWarning("aim direction: シューターとターゲットが同じ位置です。デフォルト方向を使用します。");
-                        return value; // デフォルト方向（通常は0度=上方向）
+                        float defaultAngle = value + m_AngleOffset;
+                        return NormalizeAngle(defaultAngle);
                     }
                     
                     float aimAngle = CalculateAngleFromVector(toTarget, m_CoordinateSystem);
-                    float finalAngle = aimAngle + value;
-                    return finalAngle;
+                    float finalAngle = aimAngle + value + m_AngleOffset;
+                    return NormalizeAngle(finalAngle);
 
                 case DirectionType.absolute:
-                    return value;
+                    return NormalizeAngle(value + m_AngleOffset);
 
                 case DirectionType.relative:
-                    return _sourceBullet.Direction + value;
+                    return NormalizeAngle(_sourceBullet.Direction + value + m_AngleOffset);
 
                 case DirectionType.sequence:
                     if (_isInChangeDirection)
@@ -306,7 +319,7 @@ namespace BulletML
                         float normalizedDirection = NormalizeAngle(newDirection);
                         m_LastSequenceDirection = normalizedDirection;
                         
-                        return normalizedDirection;
+                        return NormalizeAngle(normalizedDirection + m_AngleOffset);
                     }
                     else
                     {
@@ -316,11 +329,11 @@ namespace BulletML
                         float normalizedDirection = NormalizeAngle(newDirection);
                         m_LastSequenceDirection = normalizedDirection;
                         
-                        return normalizedDirection;
+                        return NormalizeAngle(normalizedDirection + m_AngleOffset);
                     }
 
                 default:
-                    return value;
+                    return NormalizeAngle(value + m_AngleOffset);
             }
         }
 

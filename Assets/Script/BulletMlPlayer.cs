@@ -20,6 +20,7 @@ public class BulletMlPlayer : MonoBehaviour
     [SerializeField] private float m_RankValue = 0.5f;
     [SerializeField] private float m_DefaultSpeed = 1f; // デフォルト速度
     [SerializeField] private float m_WaitTimeMultiplier = 1.0f; // wait時間の倍率（小数許容）
+    [SerializeField] private float m_AngleOffset = 0.0f; // 全弾の角度にオフセットを加算（小数許容）
     [SerializeField] private bool m_AutoStart = true;
 
     [Header("弾のプレハブ")]
@@ -152,6 +153,7 @@ public class BulletMlPlayer : MonoBehaviour
             m_Executor.SetCoordinateSystem(m_CoordinateSystem);
             m_Executor.SetDefaultSpeed(m_DefaultSpeed);
             m_Executor.WaitTimeMultiplier = m_WaitTimeMultiplier;
+            m_Executor.AngleOffset = m_AngleOffset;
 
             if (m_EnableDebugLog)
             {
@@ -159,6 +161,7 @@ public class BulletMlPlayer : MonoBehaviour
                 Debug.Log($"座標系を強制設定: {m_CoordinateSystem}");
                 Debug.Log($"デフォルト速度を設定: {m_DefaultSpeed}");
                 Debug.Log($"wait倍率を設定: {m_WaitTimeMultiplier}");
+                Debug.Log($"角度オフセットを設定: {m_AngleOffset}");
             }
         }
         catch (System.Exception ex)

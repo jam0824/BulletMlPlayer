@@ -947,11 +947,182 @@ public float WaitTimeMultiplier
 
 ---
 
+## 🎯 角度オフセット機能実装詳細
+
+### 概要
+
+角度オフセット機能は、全弾の角度に一定値を加算する機能です。  
+XMLを変更せずに弾幕全体の方向を動的に調整できます。
+
+### 実装アーキテクチャ
+
+```csharp
+public class BulletMlPlayer : MonoBehaviour
+{
+    [Header("Settings")]
+    [SerializeField] private float m_AngleOffset = 0.0f;
+}
+
+public class BulletMLExecutor
+{
+    [SerializeField] private float m_AngleOffset = 0.0f;
+    
+    public float AngleOffset 
+    { 
+        get => m_AngleOffset; 
+        set => m_AngleOffset = value; 
+    }
+}
+```
+
+### 核心実装
+
+#### 1. direction type別のオフセット適用
+
+```csharp
+private float CalculateDirection(BulletMLElement _directionElement, 
+                               BulletMLBullet _sourceBullet, 
+                               bool _isInChangeDirection = false)
+{
+    switch (directionType)
+    {
+        case DirectionType.absolute:
+            return NormalizeAngle(value + m_AngleOffset);
+
+        case DirectionType.relative:
+            return NormalizeAngle(_sourceBullet.Direction + value + m_AngleOffset);
+
+        case DirectionType.aim:
+            float aimAngle = CalculateAngleFromVector(toTarget, m_CoordinateSystem);
+            float finalAngle = aimAngle + value + m_AngleOffset;
+            return NormalizeAngle(finalAngle);
+
+        case DirectionType.sequence:
+            float newDirection = m_LastSequenceDirection + value;
+            float normalizedDirection = NormalizeAngle(newDirection);
+            m_LastSequenceDirection = normalizedDirection;
+            return NormalizeAngle(normalizedDirection + m_AngleOffset);
+    }
+}
+```
+
+#### 2. sequence typeでの重複適用防止
+
+```csharp
+public List<BulletMLBullet> ExecuteFireCommand(BulletMLElement _fireElement, 
+                                              BulletMLBullet _sourceBullet)
+{
+    // direction要素の型を確認
+    bool isSequenceType = directionElement.GetDirectionType() == DirectionType.sequence;
+    direction = CalculateDirection(directionElement, _sourceBullet, false);
+    
+    // シーケンス値を更新
+    // sequence typeの場合はCalculateDirection内で既に更新済み
+    if (!isSequenceType)
+    {
+        m_LastSequenceDirection = direction;
+    }
+}
+```
+
+#### 3. デフォルト処理でのオフセット適用
+
+```csharp
+// direction要素が省略された場合（自機狙い）
+if (toTarget.magnitude < 0.001f)
+{
+    direction = NormalizeAngle(0f + m_AngleOffset); // デフォルト方向
+}
+else
+{
+    direction = NormalizeAngle(CalculateAngleFromVector(toTarget, m_CoordinateSystem) + m_AngleOffset);
+}
+```
+
+### 角度正規化処理
+
+#### NormalizeAngle実装
+
+```csharp
+private float NormalizeAngle(float angle)
+{
+    // 360度を超えた場合は360度を引く
+    while (angle > 360f)
+        angle -= 360f;
+    
+    // -360度未満の場合は360度を足す
+    while (angle < -360f)
+        angle += 360f;
+    
+    return angle;
+}
+```
+
+#### 正規化例
+
+| 入力角度 | 正規化後 | 処理 |
+|---------|---------|------|
+| 450.0° | 90.0° | 450 - 360 = 90 |
+| -450.0° | -90.0° | -450 + 360 = -90 |
+| 720.0° | 0.0° | 720 - 360 - 360 = 0 |
+| 180.0° | 180.0° | 変更なし |
+
+### API設計
+
+#### 公開プロパティ
+
+```csharp
+// BulletMlPlayer
+public float AngleOffset 
+{
+    get => m_AngleOffset;
+    set 
+    {
+        m_AngleOffset = value;
+        if (m_Executor != null)
+            m_Executor.AngleOffset = value;
+    }
+}
+```
+
+#### Inspector連携
+
+```csharp
+[Header("Settings")]
+[Tooltip("全弾の角度にオフセットを加算（小数許容）")]
+[Range(-999.9f, 999.9f)]
+[SerializeField] private float m_AngleOffset = 0.0f;
+```
+
+### 実装上の考慮事項
+
+#### パフォーマンス
+
+- **軽量な加算**: 単純な浮動小数点加算のみ
+- **一回設定**: XML読み込み時の一回設定で済む
+- **メモリ効率**: フィールド一つのみ追加
+
+#### 堅牢性
+
+- **全direction type対応**: absolute、relative、aim、sequence全対応
+- **正規化処理**: 360度超えでの自動正規化
+- **sequence重複防止**: sequence typeでのオフセット重複適用を防止
+
+#### テスト性
+
+- **予測可能**: 単純な加算なので結果が予測しやすい
+- **全type網羅**: 全direction typeでのテスト実装
+- **境界値テスト**: 360度超え、負の値等の境界値テスト
+- **changeDirection対応**: changeDirectionコマンドでのテスト
+
+---
+
 ## 🔮 今後の拡張
 
 ### 短期計画
 - [x] 自動ループ機能実装
 - [x] wait倍率機能実装
+- [x] 角度オフセット機能実装
 - [ ] WebGL対応最適化
 - [ ] モバイル向けパフォーマンス調整
 - [ ] VFXGraph統合
