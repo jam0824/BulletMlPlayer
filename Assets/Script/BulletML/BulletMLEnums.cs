@@ -48,8 +48,8 @@ namespace BulletML
     /// </summary>
     public enum CoordinateSystem
     {
-        XY, // XY面（横スクロールシューティング用）：X軸が横、Y軸が縦
-        YZ  // YZ面（縦スクロールシューティング用）：Y軸が縦、Z軸が前後
+        XY, // XY面（縦スクロールシューティング用）：X軸が左右、Y軸が上下
+        YZ  // YZ面（横スクロールシューティング用）：Y軸が上下、Z軸が左右
     }
 
     /// <summary>

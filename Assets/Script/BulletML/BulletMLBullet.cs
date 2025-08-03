@@ -368,14 +368,14 @@ namespace BulletML
             switch (_coordinateSystem)
             {
                 case CoordinateSystem.XY:
-                    // XY面（横スクロールシューティング）：上方向が0度、時計回り
-                    // X軸が横（左右）、Y軸が縦（上下）、Z軸は使用しない
+                    // XY面（縦スクロールシューティング）：上方向が0度、時計回り
+                    // X軸が左右、Y軸が上下、Z軸は使用しない
                     result = new Vector3(Mathf.Sin(angleRadians), Mathf.Cos(angleRadians), 0f);
                     break;
 
                 case CoordinateSystem.YZ:
-                    // YZ面（縦スクロールシューティング）：上方向が0度、時計回り
-                    // X軸は使用しない、Y軸が縦（上下）、Z軸が前後
+                    // YZ面（横スクロールシューティング）：上方向が0度、時計回り
+                    // X軸は使用しない、Y軸が上下、Z軸が左右
                     result = new Vector3(0f, Mathf.Cos(angleRadians), Mathf.Sin(angleRadians));
                     break;
 

@@ -17,7 +17,7 @@ UnityでBulletML弾幕パターンを実行するための完全なシステム�
 - ✅ **完全なBulletML仕様準拠**: [公式DTD/RELAX NG仕様書](https://www.asahi-net.or.jp/~cs8k-cyu/bulletml/)に基づく完全実装
 - ✅ **fireRef要素**: ラベル参照による弾発射（パラメータ渡し対応）
 - ✅ **sequence型完全対応**: changeSpeed/changeDirection内の連続変化
-- ✅ **2つの座標系**: XY面（水平シューティング）とYZ面（縦シューティング）
+- ✅ **2つの座標系**: XY面（縦シューティング）とYZ面（横シューティング）
 - ✅ **動的ターゲット追跡**: プレイヤーを自動で追尾する弾幕
 - ✅ **60FPS制御**: フレームレート制御による正確なタイミング
 - ✅ **TDD品質保証**: テスト駆動開発による100%の信頼性
@@ -69,7 +69,7 @@ bulletMLPlayer.StartBulletML();
 
 #### Inspector設定
 - **Bullet ML Xml**: 実行するBulletMLファイル
-- **Coordinate System**: `XY`（横シューティング）または`YZ`（縦シューティング）
+- **Coordinate System**: `XY`（縦シューティング）または`YZ`（横シューティング）
 - **Target Tag**: 狙い撃ちする対象のタグ（デフォルト: "Player"）
 - **Default Speed**: speed省略時のデフォルト速度
 - **Enable Loop**: XML実行完了後に自動的にループするかの設定
@@ -163,8 +163,8 @@ bulletMLPlayer.SetLoopDelayFrames(60);         // 1秒間隔に変更
 
 | 座標系 | 説明 | 0度の方向 | 用途 |
 |-------|------|---------|-----|
-| `XY` | X-横, Y-縦 | 上（Y+） | 水平シューティング |
-| `YZ` | Y-縦, Z-前後 | 上（Y+） | 縦シューティング |
+| `XY` | X-左右, Y-上下 | 上（Y+） | 縦シューティング |
+| `YZ` | Y-上下, Z-左右 | 上（Y+） | 横シューティング |
 
 ## 🎯 サンプル弾幕
 
@@ -436,8 +436,8 @@ var shooter = new BulletMLBullet(position, direction, speed, coordinateSystem, f
 ### 座標系最適化
 ```csharp
 // 適切な座標系を選択
-CoordinateSystem.XY  // 水平シューティング用
-CoordinateSystem.YZ  // 縦シューティング用
+CoordinateSystem.XY  // 縦シューティング用
+CoordinateSystem.YZ  // 横シューティング用
 ```
 
 ## 🔧 トラブルシューティング

@@ -55,10 +55,10 @@ namespace BulletML
                 switch (_document.Type)
                 {
                     case BulletMLType.vertical:
-                        m_CoordinateSystem = CoordinateSystem.YZ;
+                        m_CoordinateSystem = CoordinateSystem.XY;
                         break;
                     case BulletMLType.horizontal:
-                        m_CoordinateSystem = CoordinateSystem.XY;
+                        m_CoordinateSystem = CoordinateSystem.YZ;
                         break;
                     default:
                         m_CoordinateSystem = CoordinateSystem.XY;

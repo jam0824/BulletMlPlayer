@@ -223,7 +223,7 @@ namespace BulletMLTests
 
             // Assert
             Assert.AreEqual(BulletMLType.vertical, document.Type);
-            Assert.AreEqual(CoordinateSystem.YZ, m_Executor.CoordinateSystem);
+            Assert.AreEqual(CoordinateSystem.XY, m_Executor.CoordinateSystem);
         }
 
         [Test]
@@ -243,7 +243,7 @@ namespace BulletMLTests
 
             // Assert
             Assert.AreEqual(BulletMLType.horizontal, document.Type);
-            Assert.AreEqual(CoordinateSystem.XY, m_Executor.CoordinateSystem);
+            Assert.AreEqual(CoordinateSystem.YZ, m_Executor.CoordinateSystem);
         }
 
         [Test]
