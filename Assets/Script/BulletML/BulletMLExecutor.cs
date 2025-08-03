@@ -230,14 +230,19 @@ namespace BulletML
         }
 
         /// <summary>
-        /// 角度を0～360度の範囲に正規化する
+        /// 角度を-360°～360°の範囲に正規化する
+        /// クルクル回る問題を防ぐため、360°を超えた時点で正規化
         /// </summary>
         private float NormalizeAngle(float angle)
         {
-            while (angle < 0f)
-                angle += 360f;
-            while (angle >= 360f)
+            // 360度を超えた場合は360度を引く
+            while (angle > 360f)
                 angle -= 360f;
+            
+            // -360度未満の場合は360度を足す
+            while (angle < -360f)
+                angle += 360f;
+            
             return angle;
         }
 
