@@ -378,7 +378,7 @@ public Vector3 GetVelocityVector()
 ```
 
 ### テストカバレッジ
-- **EditModeテスト**: 26個のテストクラス、190+個のテストケース
+- **EditModeテスト**: 27個のテストクラス、200+個のテストケース
 - **XMLファイルテスト**: 実際のBulletMLファイルでの動作確認
 - **TDD品質保証**: テスト駆動開発による完全な機能実装
 - **カバレッジ**: コア機能100%、新機能（fireRef、sequence型）100%
@@ -507,10 +507,11 @@ Script/
 │       ├── BulletMLDaiouzyouHibachiTests.cs # 大往生ひばち超高密度弾幕テスト
 │       ├── BulletMLActionRefTests.cs # actionRef専用テスト
 │       ├── BulletMLBulletRefTests.cs # bulletRef専用テスト
+│       ├── BulletMLComplexExpressionTests.cs # 複雑数式評価テスト
 │       ├── BulletMLIntegrationTests.cs
 │       ├── BulletMLCirclePatternTests.cs
 │       ├── BulletMLControlCommandTests.cs
-│       └── ...（26個のテストクラス）
+│       └── ...（27個のテストクラス）
 ```
 
 ## 🎮 実装例
@@ -617,5 +618,8 @@ public class ShootingGameManager : MonoBehaviour
 ✅ **XMLファイルテスト** - 実際のBulletMLファイルでの動作確認  
 ✅ **フレームレート制御** - 60FPS対応による正確なタイミング  
 ✅ **ホーミングレーザーテスト** - 3段階速度変化とホーミング動作の包括的検証  
+✅ **actionRef専用テスト** - パラメータ付きアクション参照システムの詳細検証
+✅ **bulletRef専用テスト** - パラメータ付き弾参照システムの詳細検証  
+✅ **複雑数式評価テスト** - 多層ネスト、演算子優先度、境界値の包括的検証
 
 🎯 **Let's create amazing bullet patterns!** 🎯

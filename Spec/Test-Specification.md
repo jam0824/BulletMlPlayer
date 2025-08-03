@@ -6,7 +6,7 @@
 テスト駆動開発（TDD）によって100%の信頼性を保証します。
 
 **テストフレームワーク**: Unity Test Framework  
-**テストカバレッジ**: 26個のテストクラス、190+個のテストケース  
+**テストカバレッジ**: 27個のテストクラス、200+個のテストケース  
 **更新日**: 2025年8月
 
 ---
@@ -35,7 +35,7 @@ graph TD
 
 | カテゴリ | テスト数 | 目的 |
 |---------|---------|------|
-| **EditModeテスト** | 190+ | ロジックの正確性検証 |
+| **EditModeテスト** | 200+ | ロジックの正確性検証 |
 | **PlayModeテスト** | 20+ | Unity統合環境での動作確認 |
 | **XMLファイルテスト** | 15+ | 実際のBulletMLファイルでの検証 |
 | **パフォーマンステスト** | 10+ | 性能・メモリ使用量測定 |
@@ -259,6 +259,39 @@ graph TD
 - fireRefとの連携動作
 - エラーハンドリング（不正ラベル参照時の通常弾処理）
 - 大量bulletRef実行時のパフォーマンス
+
+#### BulletMLComplexExpressionTests.cs
+```csharp
+[Test] public void Expression_BasicArithmetic_EvaluatesCorrectly()
+[Test] public void Expression_OperatorPrecedence_FollowsCorrectOrder()
+[Test] public void Expression_NestedParentheses_EvaluatesCorrectly()
+[Test] public void Expression_VariableCombinations_EvaluatesCorrectly()
+[Test] public void Expression_ComplexNestedVariables_EvaluatesCorrectly()
+[Test] public void Expression_BoundaryValues_HandlesCorrectly()
+[Test] public void Expression_ZeroDivision_HandlesGracefully()
+[Test] public void Expression_FloatingPointPrecision_MaintainsAccuracy()
+[Test] public void Expression_EmptyAndNull_HandlesGracefully()
+[Test] public void Expression_VariableNotFound_DefaultsToZero()
+[Test] public void Expression_Performance_LargeScale()
+[Test] public void Expression_ExtremeNesting_HandlesCorrectly()
+[Test] public void Expression_ModuloOperations_EvaluatesCorrectly()
+[Test] public void Expression_ParameterDynamicChange_EvaluatesCorrectly()
+```
+
+**テスト対象:**
+- 基本四則演算（+, -, *, /, %）の正確性
+- 演算子優先度と左結合性の検証
+- 多層括弧ネスト（5層以上）の評価
+- $rand, $rank, $1, $2, $3変数の複雑な組み合わせ
+- 境界値処理（大数、小数、負数、ゼロ）
+- ゼロ除算・剰余でのInfinity/NaN処理
+- 浮動小数点精度と累積誤差の管理
+- 空文字列・null入力の安全処理
+- 存在しない変数の規定値処理
+- 大量計算（1000回）のパフォーマンス
+- 極端なネストレベル（10層）の処理
+- 剰余演算子の詳細な動作検証
+- パラメータ動的変更後の正確な再評価
 
 ---
 
