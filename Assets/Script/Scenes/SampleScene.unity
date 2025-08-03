@@ -774,10 +774,11 @@ MonoBehaviour:
   m_DefaultSpeed: 1
   m_AutoStart: 1
   m_BulletPrefab: {fileID: 778076106}
-  m_EnableLoop: 0
+  m_EnableLoop: 1
   m_LoopDelayFrames: 300
   m_EnableDebugLog: 1
   m_MaxBullets: 1000
+  m_EnableTrajectoryLogging: 1
 --- !u!65 &969433263
 BoxCollider:
   m_ObjectHideFlags: 0

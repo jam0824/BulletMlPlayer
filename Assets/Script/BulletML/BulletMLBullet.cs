@@ -245,6 +245,7 @@ namespace BulletML
                     else
                     {
                         float t = (float)m_DirectionChange.CurrentFrame / m_DirectionChange.Duration;
+                        float oldDirection = m_Direction;
                         m_Direction = Mathf.Lerp(m_DirectionChange.StartValue, m_DirectionChange.TargetValue, t);
                     }
                 }

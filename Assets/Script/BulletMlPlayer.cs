@@ -670,4 +670,12 @@ public class BulletMlPlayer : MonoBehaviour
             }
         }
     }
+    
+    void OnDestroy()
+    {
+    }
+    
+    void OnApplicationQuit()
+    {
+    }
 }

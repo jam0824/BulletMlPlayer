@@ -230,6 +230,18 @@ namespace BulletML
         }
 
         /// <summary>
+        /// 角度を0～360度の範囲に正規化する
+        /// </summary>
+        private float NormalizeAngle(float angle)
+        {
+            while (angle < 0f)
+                angle += 360f;
+            while (angle >= 360f)
+                angle -= 360f;
+            return angle;
+        }
+
+        /// <summary>
         /// 方向を計算する
         /// </summary>
         private float CalculateDirection(BulletMLElement _directionElement, BulletMLBullet _sourceBullet, bool _isInChangeDirection = false, Dictionary<int, float> _overrideParameters = null)
@@ -278,16 +290,22 @@ namespace BulletML
                     if (_isInChangeDirection)
                     {
                         // changeDirection要素内では方向を連続的に変化させる
+                        float oldSequenceDirection = m_LastSequenceDirection;
                         float newDirection = m_LastSequenceDirection + value;
-                        m_LastSequenceDirection = newDirection;
-                        return newDirection;
+                        float normalizedDirection = NormalizeAngle(newDirection);
+                        m_LastSequenceDirection = normalizedDirection;
+                        
+                        return normalizedDirection;
                     }
                     else
                     {
                         // fire要素内では累積的に方向を変化させる
+                        float oldSequenceDirection = m_LastSequenceDirection;
                         float newDirection = m_LastSequenceDirection + value;
-                        m_LastSequenceDirection = newDirection;
-                        return newDirection;
+                        float normalizedDirection = NormalizeAngle(newDirection);
+                        m_LastSequenceDirection = normalizedDirection;
+                        
+                        return normalizedDirection;
                     }
 
                 default:
