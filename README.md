@@ -378,7 +378,7 @@ public Vector3 GetVelocityVector()
 ```
 
 ### テストカバレッジ
-- **EditModeテスト**: 24個のテストクラス、170+個のテストケース
+- **EditModeテスト**: 26個のテストクラス、190+個のテストケース
 - **XMLファイルテスト**: 実際のBulletMLファイルでの動作確認
 - **TDD品質保証**: テスト駆動開発による完全な機能実装
 - **カバレッジ**: コア機能100%、新機能（fireRef、sequence型）100%
@@ -505,10 +505,12 @@ Script/
 │       ├── BulletMLGuwangeCircleFireTests.cs # 二段階円形弾幕テスト
 │       ├── BulletMLProgearGrowBulletsTests.cs # 成長する弾幕テスト
 │       ├── BulletMLDaiouzyouHibachiTests.cs # 大往生ひばち超高密度弾幕テスト
+│       ├── BulletMLActionRefTests.cs # actionRef専用テスト
+│       ├── BulletMLBulletRefTests.cs # bulletRef専用テスト
 │       ├── BulletMLIntegrationTests.cs
 │       ├── BulletMLCirclePatternTests.cs
 │       ├── BulletMLControlCommandTests.cs
-│       └── ...（24個のテストクラス）
+│       └── ...（26個のテストクラス）
 ```
 
 ## 🎮 実装例

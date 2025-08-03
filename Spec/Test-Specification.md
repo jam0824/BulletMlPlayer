@@ -6,7 +6,7 @@
 テスト駆動開発（TDD）によって100%の信頼性を保証します。
 
 **テストフレームワーク**: Unity Test Framework  
-**テストカバレッジ**: 24個のテストクラス、170+個のテストケース  
+**テストカバレッジ**: 26個のテストクラス、190+個のテストケース  
 **更新日**: 2025年8月
 
 ---
@@ -35,7 +35,7 @@ graph TD
 
 | カテゴリ | テスト数 | 目的 |
 |---------|---------|------|
-| **EditModeテスト** | 170+ | ロジックの正確性検証 |
+| **EditModeテスト** | 190+ | ロジックの正確性検証 |
 | **PlayModeテスト** | 20+ | Unity統合環境での動作確認 |
 | **XMLファイルテスト** | 15+ | 実際のBulletMLファイルでの検証 |
 | **パフォーマンステスト** | 10+ | 性能・メモリ使用量測定 |
@@ -211,6 +211,54 @@ graph TD
 - fireRef参照による16発連射
 - ランク依存の繰り返し回数・速度・待機時間
 - 大量弾生成時のパフォーマンス
+
+#### BulletMLActionRefTests.cs
+```csharp
+[Test] public void ActionRef_BasicReference_ExecutesCorrectly()
+[Test] public void ActionRef_WithParameters_PassesValuesCorrectly()
+[Test] public void ActionRef_NestedReference_ExecutesSequentially()
+[Test] public void ActionRef_ComplexParameters_EvaluatesCorrectly()
+[Test] public void ActionRef_WithRepeat_ExecutesMultipleTimes()
+[Test] public void ActionRef_WithFireRef_CombinedExecution()
+[Test] public void ActionRef_RecursiveReference_HandlesCorrectly()
+[Test] public void ActionRef_Performance_LargeScale()
+[Test] public void ActionRef_InvalidLabel_HandlesGracefully()
+```
+
+**テスト対象:**
+- actionRef基本参照システム
+- パラメータ渡し（$1, $2, $3）の正確性
+- ネスト・再帰的actionRef実行
+- 複雑なパラメータ式評価（$rank, $randとの組み合わせ）
+- repeatとの組み合わせ実行
+- fireRefとの連携動作
+- エラーハンドリング（不正ラベル参照）
+- 大量actionRef実行時のパフォーマンス
+
+#### BulletMLBulletRefTests.cs
+```csharp
+[Test] public void BulletRef_BasicReference_InheritsProperties()
+[Test] public void BulletRef_WithParameters_PassesValuesCorrectly()
+[Test] public void BulletRef_WithAction_ExecutesCorrectly()
+[Test] public void BulletRef_ComplexParameters_EvaluatesCorrectly()
+[Test] public void BulletRef_NestedReference_ResolvesCorrectly()
+[Test] public void BulletRef_WithRepeat_CreatesMultipleBullets()
+[Test] public void BulletRef_WithFireRef_CombinedExecution()
+[Test] public void BulletRef_Performance_LargeScale()
+[Test] public void BulletRef_InvalidLabel_HandlesGracefully()
+```
+
+**テスト対象:**
+- bulletRef基本参照システム
+- 弾属性の継承（速度、アクション）
+- パラメータ渡し（$1, $2, $3）の正確性
+- 弾アクションの実行検証
+- 複雑なパラメータ式評価（$rank, $randとの組み合わせ）
+- ネストしたbulletRef参照
+- repeatとの組み合わせ実行
+- fireRefとの連携動作
+- エラーハンドリング（不正ラベル参照時の通常弾処理）
+- 大量bulletRef実行時のパフォーマンス
 
 ---
 
