@@ -24,6 +24,10 @@ public class BulletMlPlayer : MonoBehaviour
     [Header("弾のプレハブ")]
     [SerializeField] private GameObject m_BulletPrefab;
 
+    [Header("ループ設定")]
+    [SerializeField] private bool m_EnableLoop = false;
+    [SerializeField] private int m_LoopDelayFrames = 60; // ループ開始までの待機フレーム数
+
     [Header("デバッグ")]
     [SerializeField] private bool m_EnableDebugLog = false;
     [SerializeField] private int m_MaxBullets = 1000;
@@ -34,10 +38,15 @@ public class BulletMlPlayer : MonoBehaviour
     private List<BulletMLBullet> m_ListActiveBullets;
     private List<GameObject> m_ListBulletObjects;
     private Queue<GameObject> m_BulletPool;
+    private BulletMLBullet m_ShooterBullet; // トップアクション実行弾（シューター）
     
     // ターゲット管理
     private GameObject m_TargetObject;
     private Vector3 m_CurrentPlayerPosition;
+    
+    // ループ管理
+    private bool m_IsXmlExecutionCompleted = false;
+    private int m_LoopWaitFrameCounter = 0;
 
     public BulletMLDocument Document => m_Document;
     public Vector3 PlayerPosition => m_CurrentPlayerPosition;
@@ -173,6 +182,10 @@ public class BulletMlPlayer : MonoBehaviour
             return;
         }
 
+        // ループ状態をリセット
+        m_IsXmlExecutionCompleted = false;
+        m_LoopWaitFrameCounter = 0;
+
         // 初期弾を作成（シューターなので非表示）
         // シューター位置を決定
         Vector3 shooterPosition = GetShooterPosition();
@@ -181,6 +194,9 @@ public class BulletMlPlayer : MonoBehaviour
         var initialBullet = new BulletMLBullet(shooterPosition, 0f, 0f, m_CoordinateSystem, false);
         var actionRunner = new BulletMLActionRunner(topAction);
         initialBullet.PushAction(actionRunner);
+        
+        // シューター弾として記録
+        m_ShooterBullet = initialBullet;
         
         AddBullet(initialBullet);
 
@@ -381,6 +397,74 @@ public class BulletMlPlayer : MonoBehaviour
                 bullet.Vanish();
             }
         }
+
+        // XML実行完了の検知とループ処理
+        CheckAndHandleXmlExecutionCompletion();
+    }
+
+    /// <summary>
+    /// XML実行完了の検知とループ処理
+    /// </summary>
+    private void CheckAndHandleXmlExecutionCompletion()
+    {
+        // シューター弾が存在し、アクションが継続中の場合は実行中
+        if (m_ShooterBullet != null && 
+            m_ShooterBullet.IsActive && 
+            m_ShooterBullet.GetCurrentAction() != null)
+        {
+            return;
+        }
+
+        // XML実行完了を検知
+        if (!m_IsXmlExecutionCompleted)
+        {
+            m_IsXmlExecutionCompleted = true;
+            m_LoopWaitFrameCounter = 0;
+
+            if (m_EnableDebugLog)
+            {
+                Debug.Log("XML実行が完了しました");
+                if (m_EnableLoop)
+                {
+                    Debug.Log($"ループが有効です。{m_LoopDelayFrames}フレーム後に再実行します");
+                }
+            }
+            
+            // 遅延フレーム0の場合は即座にループ開始
+            if (m_EnableLoop && m_LoopDelayFrames == 0)
+            {
+                if (m_EnableDebugLog)
+                {
+                    Debug.Log("ループ開始 - XMLを即座に再実行します（遅延フレーム0）");
+                }
+                StartTopAction();
+                return;
+            }
+            
+            // 完了検知フレームでは以降の処理をスキップ
+            return;
+        }
+
+        // ループが有効な場合の処理
+        if (m_EnableLoop && m_IsXmlExecutionCompleted)
+        {
+            m_LoopWaitFrameCounter++;
+
+            // すべての遅延フレーム設定で統一された動作
+            // XML終了から指定フレーム数だけ待機してからループ開始
+            bool shouldLoop = (m_LoopWaitFrameCounter > m_LoopDelayFrames);
+
+            if (shouldLoop)
+            {
+                if (m_EnableDebugLog)
+                {
+                    Debug.Log("ループ開始 - XMLを再実行します");
+                }
+
+                // XMLを再実行
+                StartTopAction();
+            }
+        }
     }
 
     /// <summary>
@@ -478,6 +562,66 @@ public class BulletMlPlayer : MonoBehaviour
         }
         
         m_ListActiveBullets.Clear();
+        
+        // ループ状態はリセットしない（弾クリア != ループ停止）
+        // ユーザーが手動で弾をクリアしても、進行中のループ処理は継続すべき
+    }
+
+    /// <summary>
+    /// ループを有効/無効にする
+    /// </summary>
+    public void SetLoopEnabled(bool _enabled)
+    {
+        m_EnableLoop = _enabled;
+        
+        if (m_EnableDebugLog)
+        {
+            Debug.Log($"ループ設定を変更しました: {(m_EnableLoop ? "有効" : "無効")}");
+        }
+    }
+
+    /// <summary>
+    /// ループ開始までの待機フレーム数を設定する
+    /// </summary>
+    public void SetLoopDelayFrames(int _delayFrames)
+    {
+        m_LoopDelayFrames = Mathf.Max(0, _delayFrames);
+        
+        if (m_EnableDebugLog)
+        {
+            Debug.Log($"ループ待機フレーム数を設定しました: {m_LoopDelayFrames}フレーム");
+        }
+    }
+
+    /// <summary>
+    /// 現在のループ設定を取得する
+    /// </summary>
+    public bool IsLoopEnabled()
+    {
+        return m_EnableLoop;
+    }
+
+    /// <summary>
+    /// 現在のループ待機フレーム数を取得する
+    /// </summary>
+    public int GetLoopDelayFrames()
+    {
+        return m_LoopDelayFrames;
+    }
+
+    /// <summary>
+    /// ループ状態をリセットする
+    /// </summary>
+    public void ResetLoopState()
+    {
+        m_IsXmlExecutionCompleted = false;
+        m_LoopWaitFrameCounter = 0;
+        m_ShooterBullet = null; // シューター弾もリセット
+        
+        if (m_EnableDebugLog)
+        {
+            Debug.Log("ループ状態をリセットしました");
+        }
     }
 
     void OnDrawGizmos()

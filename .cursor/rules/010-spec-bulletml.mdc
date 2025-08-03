@@ -501,3 +501,12 @@ Examples
 
 <!ELEMENT bulletRef (param*)>
 <!ATTLIST bulletRef label CDATA #REQUIRED>
+
+# 追加仕様
+## xmlのループ
+- xmlが終了時にBulletMlPlayerのloopにチェックが入っている場合、ループする
+- ループする場合、xmlが終了してから何フレーム待つか設定できる
+    - 1フレームの場合、1フレーム待ってから次のループを実行
+    - 5フレームの場合、5フレーム待ってから次のループを実行
+    - 数フレームの誤差は許容
+- ループ時に前からあった弾は消さない
