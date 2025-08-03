@@ -10,27 +10,33 @@ using UnityEditor;
 /// </summary>
 public class BulletMlPlayer : MonoBehaviour
 {
-    [Header("設定")]
+    [Header("基本設定")]
     [SerializeField] private TextAsset m_BulletMLXml;
     [SerializeField] private CoordinateSystem m_CoordinateSystem = CoordinateSystem.XY;
-    [SerializeField] private string m_TargetTag = "Player"; // ターゲットオブジェクトのタグ
-    [SerializeField] private Vector3 m_FallbackPlayerPosition = new Vector3(0f, -3f, -5f); // タグオブジェクトが見つからない場合の位置
-    [SerializeField] private bool m_UseShooterOffset = false; // オフセット使用フラグ
-    [SerializeField] private Vector3 m_ShooterOffset = new Vector3(0f, 2f, 0f);
-    [SerializeField] private float m_RankValue = 0.5f;
-    [SerializeField] private float m_DefaultSpeed = 1f; // デフォルト速度
-    [SerializeField] private float m_WaitTimeMultiplier = 1.0f; // wait時間の倍率（小数許容）
-    [SerializeField] private float m_AngleOffset = 0.0f; // 全弾の角度にオフセットを加算（小数許容）
     [SerializeField] private bool m_AutoStart = true;
 
-    [Header("弾のプレハブ")]
+    [Header("ターゲット設定")]
+    [SerializeField] private string m_TargetTag = "Player"; // ターゲットオブジェクトのタグ
+    [SerializeField] private Vector3 m_FallbackPlayerPosition = new Vector3(0f, -3f, -5f); // タグオブジェクトが見つからない場合の位置
+
+    [Header("シューター設定")]
+    [SerializeField] private bool m_UseShooterOffset = false; // オフセット使用フラグ
+    [SerializeField] private Vector3 m_ShooterOffset = new Vector3(0f, 2f, 0f);
+
+    [Header("弾の設定")]
     [SerializeField] private GameObject m_BulletPrefab;
+    [SerializeField] private float m_DefaultSpeed = 1f; // デフォルト速度
+    [SerializeField] private float m_RankValue = 0.5f;
+
+    [Header("拡張機能")]
+    [SerializeField] private float m_WaitTimeMultiplier = 1.0f; // wait時間の倍率（小数許容）
+    [SerializeField] private float m_AngleOffset = 0.0f; // 全弾の角度にオフセットを加算（小数許容）
 
     [Header("ループ設定")]
     [SerializeField] private bool m_EnableLoop = false;
     [SerializeField] private int m_LoopDelayFrames = 60; // ループ開始までの待機フレーム数
 
-    [Header("デバッグ")]
+    [Header("デバッグ設定")]
     [SerializeField] private bool m_EnableDebugLog = false;
     [SerializeField] private int m_MaxBullets = 1000;
 
