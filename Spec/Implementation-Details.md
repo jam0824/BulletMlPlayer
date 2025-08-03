@@ -644,17 +644,181 @@ public class BulletMLPerformanceMonitor : MonoBehaviour
 
 ---
 
+## 🔄 ループ機能実装詳細
+
+### 概要
+
+自動ループ機能は、XML実行完了後に設定可能な遅延でパターンを自動的に繰り返し実行する機能です。
+
+### 実装アーキテクチャ
+
+```csharp
+public class BulletMlPlayer : MonoBehaviour
+{
+    [Header("Loop Settings")]
+    [SerializeField] private bool m_EnableLoop = false;
+    [SerializeField] private int m_LoopDelayFrames = 60;
+    
+    // 内部状態管理
+    private bool m_IsXmlExecutionCompleted = false;
+    private int m_LoopWaitFrameCounter = 0;
+    private BulletMLBullet m_ShooterBullet = null;
+}
+```
+
+### 状態遷移
+
+```mermaid
+stateDiagram-v2
+    [*] --> Idle
+    Idle --> Executing : StartTopAction()
+    Executing --> Waiting : XML完了検知
+    Waiting --> Executing : 遅延完了 & Loop有効
+    Waiting --> Idle : Loop無効
+    Executing --> Idle : 手動停止
+```
+
+### 核心実装
+
+#### 1. XML実行完了検知
+
+```csharp
+private void CheckAndHandleXmlExecutionCompletion()
+{
+    // シューター弾が存在し、アクションが継続中の場合は実行中
+    if (m_ShooterBullet != null && 
+        m_ShooterBullet.IsActive && 
+        m_ShooterBullet.GetCurrentAction() != null)
+    {
+        return;
+    }
+
+    // XML実行完了を検知
+    if (!m_IsXmlExecutionCompleted)
+    {
+        m_IsXmlExecutionCompleted = true;
+        m_LoopWaitFrameCounter = 0;
+        
+        if (m_EnableDebugLog)
+        {
+            Debug.Log("XML実行完了を検知しました");
+        }
+        return;
+    }
+
+    // ループ処理
+    if (m_EnableLoop && m_IsXmlExecutionCompleted)
+    {
+        m_LoopWaitFrameCounter++;
+        
+        bool shouldLoop = (m_LoopWaitFrameCounter > m_LoopDelayFrames);
+        
+        if (shouldLoop)
+        {
+            if (m_EnableDebugLog)
+            {
+                Debug.Log($"ループを開始します（遅延: {m_LoopDelayFrames}フレーム）");
+            }
+            
+            StartTopAction();
+            ResetLoopState();
+        }
+    }
+}
+```
+
+#### 2. シューター弾の追跡
+
+```csharp
+public void StartTopAction()
+{
+    // メインアクション開始
+    var topAction = m_Document.GetTopAction();
+    var initialBullet = new BulletMLBullet(shooterPosition, 0f, 0f, m_CoordinateSystem, false);
+    var actionRunner = new BulletMLActionRunner(topAction);
+    initialBullet.PushAction(actionRunner);
+    
+    // シューター弾として記録
+    m_ShooterBullet = initialBullet;
+    
+    AddBullet(initialBullet);
+}
+```
+
+#### 3. 状態リセット
+
+```csharp
+public void ResetLoopState()
+{
+    m_IsXmlExecutionCompleted = false;
+    m_LoopWaitFrameCounter = 0;
+    m_ShooterBullet = null;
+}
+```
+
+### API設計
+
+#### 公開メソッド
+
+```csharp
+// ループ機能の設定
+public void SetLoopEnabled(bool enabled)
+public void SetLoopDelayFrames(int frames)
+
+// ループ状態の取得
+public bool IsLoopEnabled()
+public int GetLoopDelayFrames()
+public bool IsXmlExecutionCompleted()
+```
+
+#### Inspector連携
+
+```csharp
+[Header("Loop Settings")]
+[Tooltip("XML実行完了後に自動的にループするか")]
+[SerializeField] private bool m_EnableLoop = false;
+
+[Tooltip("XML実行完了からループ開始までの遅延フレーム数")]
+[Range(0, 999999)]
+[SerializeField] private int m_LoopDelayFrames = 60;
+```
+
+### 実装上の考慮事項
+
+#### パフォーマンス
+
+- **フレーム単位チェック**: `Update()`内で軽量な状態チェックのみ実行
+- **既存弾保持**: ループ開始時に既存弾を消去しない
+- **メモリ効率**: 状態変数は最小限に抑制
+
+#### 堅牢性
+
+- **数フレーム誤差許容**: テスト時に±3-5フレームの誤差を許容
+- **状態管理**: 明確な状態遷移による予測可能な動作
+- **エラーハンドリング**: 不正な状態でのクラッシュ防止
+
+#### テスト性
+
+- **動的観察**: 厳密なフレーム数ではなく結果重視のテスト
+- **リフレクション活用**: プライベートメソッドの直接テスト
+- **デバッグログ**: 詳細な実行トレース
+
+---
+
 ## 🔮 今後の拡張
 
 ### 短期計画
+- [x] 自動ループ機能実装
 - [ ] WebGL対応最適化
 - [ ] モバイル向けパフォーマンス調整
 - [ ] VFXGraph統合
+- [ ] ループ条件の拡張（時間ベース、弾数ベースなど）
 
 ### 長期計画
 - [ ] ECS対応
 - [ ] Job System活用
 - [ ] GPU処理への移行
+- [ ] ループチェーン機能（複数パターンの連続実行）
 
 ---
 

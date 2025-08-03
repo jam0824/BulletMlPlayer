@@ -25,6 +25,7 @@ UnityでBulletML弾幕パターンを実行するための完全なシステム�
 - ✅ **高性能**: オブジェクトプーリングによる最適化
 - ✅ **ビジュアルデバッグ**: Scene Viewでの弾道可視化
 - ✅ **複雑弾幕対応**: ホーミングレーザー等の高度なパターン実装
+- ✅ **自動ループ機能**: XML実行完了後の設定可能な遅延でのパターン繰り返し
 
 ## 🚀 クイックスタート
 
@@ -71,6 +72,8 @@ bulletMLPlayer.StartBulletML();
 - **Coordinate System**: `XY`（横シューティング）または`YZ`（縦シューティング）
 - **Target Tag**: 狙い撃ちする対象のタグ（デフォルト: "Player"）
 - **Default Speed**: speed省略時のデフォルト速度
+- **Enable Loop**: XML実行完了後に自動的にループするかの設定
+- **Loop Delay Frames**: XML実行完了からループ開始までの待機フレーム数
 
 #### プレイヤー操作
 ```csharp
@@ -86,6 +89,22 @@ void Update()
     
     transform.position += move * speed * Time.deltaTime;
 }
+```
+
+#### ループ機能の使用例
+```csharp
+// ループ機能の設定
+bulletMLPlayer.SetLoopEnabled(true);           // ループを有効化
+bulletMLPlayer.SetLoopDelayFrames(180);        // 3秒間隔（60FPSで180フレーム）
+
+// XML実行開始
+bulletMLPlayer.LoadBulletML(xmlContent);
+bulletMLPlayer.StartBulletML();
+// → XML実行完了から3秒後に自動的にパターンがループ開始
+
+// 実行時にループ設定を変更
+bulletMLPlayer.SetLoopEnabled(false);          // ループを無効化
+bulletMLPlayer.SetLoopDelayFrames(60);         // 1秒間隔に変更
 ```
 
 ## 📖 BulletML仕様
