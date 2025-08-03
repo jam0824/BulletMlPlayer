@@ -6,7 +6,7 @@
 テスト駆動開発（TDD）によって100%の信頼性を保証します。
 
 **テストフレームワーク**: Unity Test Framework  
-**テストカバレッジ**: 27個のテストクラス、200+個のテストケース  
+**テストカバレッジ**: 28個のテストクラス、210+個のテストケース  
 **更新日**: 2025年8月
 
 ---
@@ -35,7 +35,7 @@ graph TD
 
 | カテゴリ | テスト数 | 目的 |
 |---------|---------|------|
-| **EditModeテスト** | 200+ | ロジックの正確性検証 |
+| **EditModeテスト** | 210+ | ロジックの正確性検証 |
 | **PlayModeテスト** | 20+ | Unity統合環境での動作確認 |
 | **XMLファイルテスト** | 15+ | 実際のBulletMLファイルでの検証 |
 | **パフォーマンステスト** | 10+ | 性能・メモリ使用量測定 |
@@ -292,6 +292,36 @@ graph TD
 - 極端なネストレベル（10層）の処理
 - 剰余演算子の詳細な動作検証
 - パラメータ動的変更後の正確な再評価
+
+#### BulletMLErrorHandlingTests.cs
+```csharp
+[Test] public void ErrorHandling_InvalidActionRef_LogsErrorAndContinues()
+[Test] public void ErrorHandling_InvalidBulletRef_LogsErrorAndContinues()
+[Test] public void ErrorHandling_InvalidFireRef_LogsErrorAndContinues()
+[Test] public void ErrorHandling_CircularActionRef_PreventesInfiniteLoop()
+[Test] public void ErrorHandling_ExtremelyLargeValues_HandlesGracefully()
+[Test] public void ErrorHandling_NegativeValues_HandlesCorrectly()
+[Test] public void ErrorHandling_EmptyElements_HandlesGracefully()
+[Test] public void ErrorHandling_MassiveRepeatCount_PreventesPerformanceIssues()
+[Test] public void ErrorHandling_DeepActionNesting_PreventesStackOverflow()
+[Test] public void ErrorHandling_InvalidExpressions_HandlesGracefully()
+[Test] public void ErrorHandling_MemoryStability_NoMemoryLeaks()
+[Test] public void ErrorHandling_ConcurrentExecution_ThreadSafe()
+```
+
+**テスト対象:**
+- 不正参照エラー（存在しないactionRef/bulletRef/fireRef）
+- 循環参照・無限ループ防止機能
+- 極端値処理（極大値、負値、空要素）
+- 不正数式・構文エラーの安全処理
+- パフォーマンス制限（大量repeat、深いネスト）
+- スタックオーバーフロー防止機能
+- メモリリーク・安定性確認
+- 並行実行時の安全性（簡易スレッドセーフティ）
+- エラーログの適切な出力
+- 例外発生時の処理継続能力
+- デフォルト値フォールバック機能
+- ガベージコレクション後のメモリ使用量検証
 
 ---
 
