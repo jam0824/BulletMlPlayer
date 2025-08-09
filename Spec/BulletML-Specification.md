@@ -22,6 +22,7 @@ BulletMLは、シューティングゲームの弾幕パターンをXMLで記述
 - 再利用可能なコンポーネント設計
 - パラメータ化による柔軟性
 - ランダム要素とランク（難易度）対応
+- 実行時の拡張機能（wait倍率、角度オフセット、弾速倍率）
 
 ### 座標系
 
@@ -491,6 +492,74 @@ if (difficulty == "Easy") {
 
 // デバッグ時の高速化
 player.WaitTimeMultiplier = 0.1f;    // 10倍速
+```
+
+### 弾速倍率機能
+
+BulletMLプレイヤーは、全弾の速度に統一的な倍率を適用する機能を提供します。
+
+#### 概要
+
+弾速倍率機能により、以下のような調整が可能になります：
+- **難易度調整**: 弾幕の速度をリアルタイムで変更
+- **ゲームバランス調整**: プレイヤーレベルに応じた速度調整
+- **デバッグ効率化**: 低速での弾道確認、高速でのストレステスト
+
+#### 基本仕様
+
+| 項目 | 説明 |
+|------|------|
+| **倍率範囲** | 0.0～10.0（小数許容） |
+| **デフォルト値** | 1.0（倍率なし） |
+| **計算方式** | `実効速度 = XMLの速度値 × 倍率` |
+| **適用タイミング** | 弾生成時に設定、移動計算時に適用 |
+| **実行時変更** | ゲーム実行中の動的変更が可能 |
+
+#### Inspector設定
+
+```
+Speed Multiplier: 0.0～10.0    全弾の速度に掛ける倍率（小数許容）
+```
+
+#### 使用例
+
+```csharp
+// 基本的な倍率設定
+player.SetSpeedMultiplier(2.0f);    // 全弾が2倍速
+player.SetSpeedMultiplier(0.5f);    // 全弾が半分速
+player.SetSpeedMultiplier(1.5f);    // 1.5倍速（小数対応）
+
+// 難易度による調整
+switch (difficulty) {
+    case "Easy":   player.SetSpeedMultiplier(0.7f); break; // ゆっくり
+    case "Normal": player.SetSpeedMultiplier(1.0f); break; // 通常
+    case "Hard":   player.SetSpeedMultiplier(1.3f); break; // 高速
+}
+
+// デバッグ時の制御
+player.SetSpeedMultiplier(0.1f);    // 超低速（パターン確認用）
+player.SetSpeedMultiplier(5.0f);    // 高速（ストレステスト用）
+```
+
+#### 計算例
+
+| XMLの記述 | 倍率 | 計算 | 実効速度 |
+|----------|------|------|---------|
+| `<speed>3</speed>` | 1.0 | 3.0 × 1.0 | 3.0 |
+| `<speed>3</speed>` | 2.0 | 3.0 × 2.0 | 6.0 |
+| `<speed>3</speed>` | 0.5 | 3.0 × 0.5 | 1.5 |
+| `<speed>2.5</speed>` | 1.4 | 2.5 × 1.4 | 3.5 |
+
+#### wait倍率機能との組み合わせ
+
+```csharp
+// 全体的な弾幕速度調整
+player.WaitTimeMultiplier = 0.8f;   // 発射間隔を短く（密度アップ）
+player.SetSpeedMultiplier(1.2f);    // 弾速を上げる（難易度アップ）
+
+// 逆に易しく
+player.WaitTimeMultiplier = 1.3f;   // 発射間隔を長く（密度ダウン）
+player.SetSpeedMultiplier(0.8f);    // 弾速を下げる（難易度ダウン）
 ```
 
 #### 計算例

@@ -31,6 +31,7 @@ public class BulletMlPlayer : MonoBehaviour
     [Header("拡張機能")]
     [SerializeField] private float m_WaitTimeMultiplier = 1.0f; // wait時間の倍率（小数許容）
     [SerializeField] private float m_AngleOffset = 0.0f; // 全弾の角度にオフセットを加算（小数許容）
+    [SerializeField, Tooltip("全弾の速度に掛ける倍率")] private float m_SpeedMultiplier = 1.0f;
 
     [Header("ループ設定")]
     [SerializeField] private bool m_EnableLoop = false;
@@ -134,6 +135,7 @@ public class BulletMlPlayer : MonoBehaviour
         m_Executor.SetTargetPosition(m_CurrentPlayerPosition);
         m_Executor.SetRankValue(m_RankValue);
         m_Executor.SetDefaultSpeed(m_DefaultSpeed);
+        m_Executor.SpeedMultiplier = m_SpeedMultiplier;
         
         // 新しい弾生成のコールバックを設定
         m_Executor.OnBulletCreated = OnNewBulletCreated;
@@ -160,6 +162,7 @@ public class BulletMlPlayer : MonoBehaviour
             m_Executor.SetDefaultSpeed(m_DefaultSpeed);
             m_Executor.WaitTimeMultiplier = m_WaitTimeMultiplier;
             m_Executor.AngleOffset = m_AngleOffset;
+            m_Executor.SpeedMultiplier = m_SpeedMultiplier;
 
             if (m_EnableDebugLog)
             {
@@ -173,6 +176,18 @@ public class BulletMlPlayer : MonoBehaviour
         catch (System.Exception ex)
         {
             Debug.LogError($"BulletMLの読み込みに失敗しました: {ex.Message}");
+        }
+    }
+
+    /// <summary>
+    /// インスペクター外から弾速倍率を設定
+    /// </summary>
+    public void SetSpeedMultiplier(float _multiplier)
+    {
+        m_SpeedMultiplier = Mathf.Max(0f, _multiplier);
+        if (m_Executor != null)
+        {
+            m_Executor.SpeedMultiplier = m_SpeedMultiplier;
         }
     }
 

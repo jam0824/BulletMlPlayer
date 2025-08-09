@@ -28,6 +28,7 @@ UnityでBulletML弾幕パターンを実行するための完全なシステム�
 - ✅ **自動ループ機能**: XML実行完了後の設定可能な遅延でのパターン繰り返し
 - ✅ **wait倍率調整**: waitコマンドの時間を小数倍率で柔軟に調整可能
 - ✅ **角度オフセット**: 全弾の角度に一定値を加算して弾幕の向きを統一的に調整
+- ✅ **弾速倍率調整**: インスペクターから設定可能な全弾の速度倍率
 
 ## 🚀 クイックスタート
 
@@ -76,6 +77,7 @@ bulletMLPlayer.StartBulletML();
 - **Default Speed**: speed省略時のデフォルト速度
 - **Wait Time Multiplier**: waitコマンドの時間倍率（小数許容、デフォルト: 1.0）
 - **Angle Offset**: 全弾の角度にオフセットを加算（小数許容、デフォルト: 0.0）
+- **Speed Multiplier**: 全弾の速度に掛ける倍率（小数許容、デフォルト: 1.0）
 - **Enable Loop**: XML実行完了後に自動的にループするかの設定
 - **Loop Delay Frames**: XML実行完了からループ開始までの待機フレーム数
 
@@ -158,6 +160,39 @@ else
 
 // 360度超えは自動的に正規化
 bulletMLPlayer.AngleOffset = 450.0f;        // 450度 → 90度に正規化
+```
+
+#### 弾速倍率機能の使用例
+```csharp
+// 弾速倍率の設定（Inspectorでも設定可能）
+bulletMLPlayer.SetSpeedMultiplier(2.0f);       // 2倍速（全弾が2倍の速度に）
+bulletMLPlayer.SetSpeedMultiplier(0.5f);       // 半分速（全弾が半分の速度に）
+bulletMLPlayer.SetSpeedMultiplier(1.5f);       // 1.5倍速（小数も設定可能）
+
+// 実行中にも変更可能
+bulletMLPlayer.LoadBulletML(xmlContent);
+bulletMLPlayer.StartBulletML();
+// → XMLの<speed>3</speed> が倍率2.0で実効速度6になる
+
+// ゲーム中の難易度調整に活用
+if (gameMode == "Easy") 
+{
+    bulletMLPlayer.SetSpeedMultiplier(0.7f);    // 弾速を0.7倍に（ゆっくり）
+}
+else if (gameMode == "Hard")
+{
+    bulletMLPlayer.SetSpeedMultiplier(1.3f);    // 弾速を1.3倍に（高速）
+}
+
+// デバッグ時の検証に便利
+if (Input.GetKeyDown(KeyCode.Alpha1))
+{
+    bulletMLPlayer.SetSpeedMultiplier(0.1f);    // 超低速でパターン確認
+}
+if (Input.GetKeyDown(KeyCode.Alpha2))
+{
+    bulletMLPlayer.SetSpeedMultiplier(5.0f);    // 高速でストレステスト
+}
 ```
 
 ## 📖 BulletML仕様
@@ -409,6 +444,9 @@ public List<BulletMLBullet> GetActiveBullets()
 
 // ランク値を設定（難易度調整）
 public void SetRankValue(float rankValue)
+
+// 弾速倍率を設定
+public void SetSpeedMultiplier(float multiplier)
 ```
 
 ### BulletMLBullet
@@ -438,6 +476,9 @@ public void Update(float deltaTime)
 
 // 速度ベクトルを取得
 public Vector3 GetVelocityVector()
+
+// 弾速倍率を設定
+public void SetSpeedMultiplier(float multiplier)
 ```
 
 ## 🧪 テスト

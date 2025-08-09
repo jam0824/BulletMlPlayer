@@ -19,6 +19,7 @@ namespace BulletML
         [SerializeField] private float m_DefaultSpeed = 1f; // デフォルト速度
         [SerializeField] private float m_WaitTimeMultiplier = 1.0f; // wait時間の倍率
         [SerializeField] private float m_AngleOffset = 0.0f; // 全弾の角度にオフセットを加算
+        [SerializeField] private float m_SpeedMultiplier = 1.0f; // すべての弾速に掛ける倍率
         
         // changeSpeed内専用のsequence値
         [SerializeField] private float m_LastChangeSpeedSequence = 0f;
@@ -41,6 +42,11 @@ namespace BulletML
         { 
             get => m_AngleOffset; 
             set => m_AngleOffset = value; 
+        }
+        public float SpeedMultiplier
+        {
+            get => m_SpeedMultiplier;
+            set => m_SpeedMultiplier = Mathf.Max(0f, value);
         }
 
         public BulletMLExecutor()
@@ -228,6 +234,7 @@ namespace BulletML
 
             // 弾を作成
             var newBullet = new BulletMLBullet(position, direction, speed, m_CoordinateSystem);
+            newBullet.SetSpeedMultiplier(m_SpeedMultiplier);
             
             // bulletの内容を適用
             if (actualBulletElement != null)

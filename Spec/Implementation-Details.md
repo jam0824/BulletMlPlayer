@@ -1117,12 +1117,243 @@ public float AngleOffset
 
 ---
 
+## 🚀 弾速倍率機能実装詳細
+
+### 概要
+
+弾速倍率機能は、XMLの速度指定に対して統一的な倍率を適用する機能です。  
+ゲームの難易度調整やデバッグ時の検証効率化のために、実行時に全弾の速度を動的に制御できます。
+
+### 実装アーキテクチャ
+
+```csharp
+public class BulletMlPlayer : MonoBehaviour
+{
+    [Header("Extended Features")]
+    [SerializeField] private float m_SpeedMultiplier = 1.0f;
+}
+
+public class BulletMLExecutor
+{
+    [SerializeField] private float m_SpeedMultiplier = 1.0f;
+    
+    public float SpeedMultiplier
+    {
+        get => m_SpeedMultiplier;
+        set => m_SpeedMultiplier = Mathf.Max(0f, value);
+    }
+}
+
+public class BulletMLBullet
+{
+    [SerializeField] private float m_SpeedMultiplier = 1f;
+    
+    public void SetSpeedMultiplier(float multiplier)
+    {
+        m_SpeedMultiplier = Mathf.Max(0f, multiplier);
+    }
+}
+```
+
+### 核心実装
+
+#### 1. 弾生成時の倍率適用
+
+```csharp
+public List<BulletMLBullet> ExecuteFireCommand(BulletMLElement _fireElement, 
+                                              BulletMLBullet _sourceBullet, 
+                                              Dictionary<int, float> _overrideParameters = null)
+{
+    // 弾を作成
+    var newBullet = new BulletMLBullet(position, direction, speed, m_CoordinateSystem);
+    
+    // 倍率を適用
+    newBullet.SetSpeedMultiplier(m_SpeedMultiplier);
+    
+    // bulletの内容を適用
+    if (actualBulletElement != null)
+    {
+        ApplyBulletElementInternal(actualBulletElement, newBullet, _overrideParameters);
+    }
+    
+    return newBullets;
+}
+```
+
+#### 2. 実効速度計算
+
+```csharp
+public Vector3 GetVelocityVector()
+{
+    // 基準速度に倍率を適用
+    Vector3 baseVelocity = ConvertAngleToVector(m_Direction, m_CoordinateSystem) * (m_Speed * m_SpeedMultiplier);
+    Vector3 totalVelocity = baseVelocity + m_AccumulatedVelocity;
+    return totalVelocity;
+}
+```
+
+#### 3. 設定の連携処理
+
+```csharp
+public void LoadBulletML(string _xmlContent)
+{
+    try
+    {
+        m_Document = m_Parser.Parse(_xmlContent);
+        m_Executor.SetDocument(m_Document);
+        
+        // Inspector設定を強制適用
+        m_Executor.SetCoordinateSystem(m_CoordinateSystem);
+        m_Executor.SetDefaultSpeed(m_DefaultSpeed);
+        m_Executor.WaitTimeMultiplier = m_WaitTimeMultiplier;
+        m_Executor.AngleOffset = m_AngleOffset;
+        m_Executor.SpeedMultiplier = m_SpeedMultiplier; // 倍率設定
+    }
+    catch (System.Exception ex)
+    {
+        Debug.LogError($"BulletMLの読み込みに失敗しました: {ex.Message}");
+    }
+}
+```
+
+### 計算仕様
+
+#### 倍率適用のタイミング
+
+| 段階 | 処理 | 例 |
+|------|------|-----|
+| **1. XML速度評価** | `CalculateSpeed()` | `<speed>3</speed>` → `3.0f` |
+| **2. 弾生成** | `new BulletMLBullet()` | `speed = 3.0f` |
+| **3. 倍率設定** | `SetSpeedMultiplier()` | `multiplier = 2.0f` |
+| **4. 実効速度計算** | `GetVelocityVector()` | `3.0f × 2.0f = 6.0f` |
+
+#### 物理計算への影響
+
+```csharp
+// 位置更新での実際の移動量
+public void Update(float deltaTime)
+{
+    if (!m_IsVisible) return; // 非表示弾は移動しない
+    
+    // 実効速度ベクトルを取得（倍率適用済み）
+    Vector3 velocity = GetVelocityVector();
+    
+    // 位置を更新
+    m_Position += velocity * deltaTime;
+}
+```
+
+### API設計
+
+#### 公開メソッド
+
+```csharp
+// BulletMlPlayer
+public void SetSpeedMultiplier(float multiplier)
+{
+    m_SpeedMultiplier = Mathf.Max(0f, multiplier);
+    if (m_Executor != null)
+    {
+        m_Executor.SpeedMultiplier = m_SpeedMultiplier;
+    }
+}
+
+// BulletMLBullet
+public void SetSpeedMultiplier(float multiplier)
+{
+    m_SpeedMultiplier = Mathf.Max(0f, multiplier);
+}
+```
+
+#### Inspector連携
+
+```csharp
+[Header("Extended Features")]
+[Tooltip("全弾の速度に掛ける倍率")]
+[SerializeField, Range(0.0f, 10.0f)] private float m_SpeedMultiplier = 1.0f;
+```
+
+### 実装上の考慮事項
+
+#### パフォーマンス
+
+- **軽量な乗算**: 単純な浮動小数点乗算のみ
+- **一回設定**: 弾生成時の一回設定で済む
+- **メモリ効率**: 弾ごとにfloat一つのみ追加
+
+#### 堅牢性
+
+- **負値防止**: `Mathf.Max(0f, value)`で負の値を防止
+- **デフォルト値**: 1.0で無変更動作を保証
+- **実行時変更**: ゲーム実行中の動的変更対応
+
+#### テスト性
+
+- **予測可能**: 単純な乗算なので結果が予測しやすい
+- **移動量テスト**: Update()後の位置変化で効果を検証
+- **境界値テスト**: 0.0, 1.0, 2.0等の境界値でテスト
+
+### 使用例
+
+#### ゲーム中の難易度調整
+
+```csharp
+public class DifficultyManager : MonoBehaviour
+{
+    [SerializeField] private BulletMlPlayer m_BulletPlayer;
+    
+    public void SetDifficulty(DifficultyLevel level)
+    {
+        switch (level)
+        {
+            case DifficultyLevel.Easy:
+                m_BulletPlayer.SetSpeedMultiplier(0.7f);
+                break;
+            case DifficultyLevel.Normal:
+                m_BulletPlayer.SetSpeedMultiplier(1.0f);
+                break;
+            case DifficultyLevel.Hard:
+                m_BulletPlayer.SetSpeedMultiplier(1.3f);
+                break;
+        }
+    }
+}
+```
+
+#### デバッグ時の検証支援
+
+```csharp
+public class DebugController : MonoBehaviour
+{
+    [SerializeField] private BulletMlPlayer m_BulletPlayer;
+    
+    void Update()
+    {
+        if (Input.GetKeyDown(KeyCode.F1))
+        {
+            m_BulletPlayer.SetSpeedMultiplier(0.1f); // 超低速
+        }
+        if (Input.GetKeyDown(KeyCode.F2))
+        {
+            m_BulletPlayer.SetSpeedMultiplier(1.0f); // 通常速度
+        }
+        if (Input.GetKeyDown(KeyCode.F3))
+        {
+            m_BulletPlayer.SetSpeedMultiplier(5.0f); // 高速
+        }
+    }
+}
+```
+
+---
+
 ## 🔮 今後の拡張
 
 ### 短期計画
 - [x] 自動ループ機能実装
 - [x] wait倍率機能実装
 - [x] 角度オフセット機能実装
+- [x] 弾速倍率機能実装
 - [ ] WebGL対応最適化
 - [ ] モバイル向けパフォーマンス調整
 - [ ] VFXGraph統合

@@ -6,7 +6,7 @@
 テスト駆動開発（TDD）によって100%の信頼性を保証します。
 
 **テストフレームワーク**: Unity Test Framework  
-**テストカバレッジ**: 30個のテストクラス、240+個のテストケース  
+**テストカバレッジ**: 31個のテストクラス、242+個のテストケース  
 **更新日**: 2025年8月
 
 ---
@@ -35,7 +35,7 @@ graph TD
 
 | カテゴリ | テスト数 | 目的 |
 |---------|---------|------|
-| **EditModeテスト** | 220+ | ロジックの正確性検証（ループ機能含む） |
+| **EditModeテスト** | 222+ | ロジックの正確性検証（ループ機能、弾速倍率含む） |
 | **PlayModeテスト** | 25+ | Unity統合環境での動作確認（ループ機能含む） |
 | **XMLファイルテスト** | 15+ | 実際のBulletMLファイルでの検証 |
 | **パフォーマンステスト** | 10+ | 性能・メモリ使用量測定 |
@@ -698,6 +698,13 @@ UnityEngine.Debug.Log($"ループ開始検知: フレーム{i}");
 [Test] AngleOffset_Over360_Normalized()
 [Test] AngleOffset_DecimalValue_Applied()
 [Test] AngleOffset_ChangeDirection_Applied()
+
+#### BulletMLSpeedMultiplierTests.cs
+**目的**: 弾速倍率機能の検証
+
+**テストケース**:
+[Test] Executor_AppliesSpeedMultiplier_ToNewBullets()
+[Test] Player_PropagatesSpeedMultiplier_ToExecutor()
 ```
 
 **主要テストケース:**
@@ -771,7 +778,16 @@ Assert.AreEqual(135f, directionChange.TargetValue); // 90+45=135
 |---------|-------------|----------|
 | `CalculateDirection()` | 8 | 100% |
 | `AngleOffset` プロパティ | 8 | 100% |
-| **合計** | **8** | **100%** |
+| `SpeedMultiplier` プロパティ | 2 | 100% |
+| **合計** | **10** | **100%** |
+
+#### 弾速倍率機能テストカバレッジ
+
+| メソッド | テストケース数 | カバレッジ |
+|---------|-------------|----------|
+| `SetSpeedMultiplier()` | 2 | 100% |
+| `GetVelocityVector()` with multiplier | 1 | 100% |
+| **合計** | **2** | **100%** |
 
 ---
 

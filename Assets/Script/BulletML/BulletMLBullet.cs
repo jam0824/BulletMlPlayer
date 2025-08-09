@@ -75,6 +75,7 @@ namespace BulletML
         [SerializeField] private BulletMLChangeInfo m_SpeedChange;
         [SerializeField] private BulletMLAccelInfo m_AccelInfo;
         [SerializeField] private Vector3 m_AccumulatedVelocity; // 加速度による累積速度変化
+        [SerializeField] private float m_SpeedMultiplier = 1f; // 実効速度に掛ける倍率
 
         public Vector3 Position => m_Position;
         public float Direction => m_Direction;
@@ -104,6 +105,7 @@ namespace BulletML
             m_SpeedChange = new BulletMLChangeInfo();
             m_AccelInfo = new BulletMLAccelInfo();
             m_AccumulatedVelocity = Vector3.zero;
+            m_SpeedMultiplier = 1f;
         }
 
         /// <summary>
@@ -128,6 +130,14 @@ namespace BulletML
         public void SetSpeed(float _speed)
         {
             m_Speed = _speed;
+        }
+
+        /// <summary>
+        /// 実効速度倍率を設定する
+        /// </summary>
+        public void SetSpeedMultiplier(float _multiplier)
+        {
+            m_SpeedMultiplier = Mathf.Max(0f, _multiplier);
         }
 
         /// <summary>
@@ -351,7 +361,7 @@ namespace BulletML
         /// </summary>
         public Vector3 GetVelocityVector()
         {
-            Vector3 baseVelocity = ConvertAngleToVector(m_Direction, m_CoordinateSystem) * m_Speed;
+            Vector3 baseVelocity = ConvertAngleToVector(m_Direction, m_CoordinateSystem) * (m_Speed * m_SpeedMultiplier);
             Vector3 totalVelocity = baseVelocity + m_AccumulatedVelocity;
             return totalVelocity;
         }

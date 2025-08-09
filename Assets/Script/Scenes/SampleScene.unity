@@ -764,18 +764,19 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 7bd28be104cb03a4c9edc46ae0d93e37, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  m_BulletMLXml: {fileID: 4900000, guid: 1b367896923a01d4792fb23ea38620c8, type: 3}
+  m_BulletMLXml: {fileID: 4900000, guid: 5952b181dbd43204dbdf30590bb74c49, type: 3}
   m_CoordinateSystem: 1
+  m_AutoStart: 1
   m_TargetTag: Player
   m_FallbackPlayerPosition: {x: 0, y: -3, z: -5}
   m_UseShooterOffset: 0
   m_ShooterOffset: {x: 0, y: 0, z: 0}
-  m_RankValue: 0.5
-  m_DefaultSpeed: 1
-  m_WaitTimeMultiplier: 1
-  m_AngleOffset: 90
-  m_AutoStart: 1
   m_BulletPrefab: {fileID: 778076106}
+  m_DefaultSpeed: 1
+  m_RankValue: 0.5
+  m_WaitTimeMultiplier: 6
+  m_AngleOffset: 0
+  m_SpeedMultiplier: 0.5
   m_EnableLoop: 1
   m_LoopDelayFrames: 300
   m_EnableDebugLog: 1
