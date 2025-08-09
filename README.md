@@ -29,6 +29,7 @@ UnityでBulletML弾幕パターンを実行するための完全なシステム�
 - ✅ **wait倍率調整**: waitコマンドの時間を小数倍率で柔軟に調整可能
 - ✅ **角度オフセット**: 全弾の角度に一定値を加算して弾幕の向きを統一的に調整
 - ✅ **弾速倍率調整**: インスペクターから設定可能な全弾の速度倍率
+- ✅ **FIFO弾数上限処理**: 上限到達時に古い弾から自動削除し、パフォーマンスを最適化
 
 ## 🚀 クイックスタート
 
@@ -78,6 +79,7 @@ bulletMLPlayer.StartBulletML();
 - **Wait Time Multiplier**: waitコマンドの時間倍率（小数許容、デフォルト: 1.0）
 - **Angle Offset**: 全弾の角度にオフセットを加算（小数許容、デフォルト: 0.0）
 - **Speed Multiplier**: 全弾の速度に掛ける倍率（小数許容、デフォルト: 1.0）
+- **Max Bullets**: 同時存在可能な最大弾数（FIFO削除、デフォルト: 1000）
 - **Enable Loop**: XML実行完了後に自動的にループするかの設定
 - **Loop Delay Frames**: XML実行完了からループ開始までの待機フレーム数
 
@@ -193,6 +195,27 @@ if (Input.GetKeyDown(KeyCode.Alpha2))
 {
     bulletMLPlayer.SetSpeedMultiplier(5.0f);    // 高速でストレステスト
 }
+```
+
+#### 弾数上限機能の使用例
+```csharp
+// 最大弾数の設定（Inspectorでも設定可能）
+bulletMLPlayer.SetMaxBullets(500);          // 最大500発まで許可
+bulletMLPlayer.SetMaxBullets(100);          // 最大100発（軽量化）
+
+// パフォーマンス調整の例
+if (Application.platform == RuntimePlatform.WebGLPlayer)
+{
+    bulletMLPlayer.SetMaxBullets(200);       // WebGL版では弾数制限
+}
+else if (QualitySettings.GetQualityLevel() < 2)
+{
+    bulletMLPlayer.SetMaxBullets(300);       // 低品質設定では軽量化
+}
+
+// 上限到達時はFIFO（先入れ先出し）で古い弾から自動削除
+// → 弾幕パターンが途切れることなく継続される
+// → メモリ使用量とCPU負荷が安定
 ```
 
 ## 📖 BulletML仕様
@@ -447,6 +470,9 @@ public void SetRankValue(float rankValue)
 
 // 弾速倍率を設定
 public void SetSpeedMultiplier(float multiplier)
+
+// 最大弾数を設定（FIFO削除）
+public void SetMaxBullets(int maxBullets)
 ```
 
 ### BulletMLBullet

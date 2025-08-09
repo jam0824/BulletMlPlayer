@@ -70,6 +70,41 @@ public class BulletMlPlayer : MonoBehaviour
     }
 
     /// <summary>
+    /// 最大弾数を設定（テスト用）
+    /// </summary>
+    public void SetMaxBullets(int maxBullets)
+    {
+        m_MaxBullets = maxBullets;
+    }
+
+    /// <summary>
+    /// デバッグログの有効/無効を設定（テスト用）
+    /// </summary>
+    public void SetEnableDebugLog(bool enable)
+    {
+        m_EnableDebugLog = enable;
+    }
+
+    /// <summary>
+    /// 手動更新（テスト用）
+    /// </summary>
+    public void ManualUpdate()
+    {
+        if (m_Executor != null)
+        {
+            UpdateBullets();
+        }
+    }
+
+    /// <summary>
+    /// テスト用初期化（Start()が呼ばれない場合用）
+    /// </summary>
+    public void InitializeForTest()
+    {
+        InitializeSystem();
+    }
+
+    /// <summary>
     /// フレーム情報を表示する（デバッグ用）
     /// </summary>
     private void ShowFrameInfo()
@@ -345,7 +380,12 @@ public class BulletMlPlayer : MonoBehaviour
     {
         if (m_ListActiveBullets.Count >= m_MaxBullets)
         {
-            return; // 最大数に達している
+            // FIFO方式：最も古い弾を削除
+            RemoveBulletAt(0);
+            if (m_EnableDebugLog)
+            {
+                Debug.LogWarning($"弾数上限到達。最古の弾を削除しました。(上限: {m_MaxBullets})");
+            }
         }
 
         m_ListActiveBullets.Add(_bullet);

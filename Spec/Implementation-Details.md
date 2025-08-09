@@ -1354,6 +1354,7 @@ public class DebugController : MonoBehaviour
 - [x] wait倍率機能実装
 - [x] 角度オフセット機能実装
 - [x] 弾速倍率機能実装
+- [x] FIFO弾数上限処理実装
 - [ ] WebGL対応最適化
 - [ ] モバイル向けパフォーマンス調整
 - [ ] VFXGraph統合
@@ -1364,6 +1365,128 @@ public class DebugController : MonoBehaviour
 - [ ] Job System活用
 - [ ] GPU処理への移行
 - [ ] ループチェーン機能（複数パターンの連続実行）
+
+---
+
+## FIFO弾数上限処理実装詳細
+
+### 概要
+同時存在可能な弾数を制限し、上限到達時に最古の弾を自動削除することで、メモリ効率とパフォーマンスを最適化する機能です。
+
+### アーキテクチャ
+
+#### 1. 基本設計
+```mermaid
+graph TD
+    A[新しい弾生成要求] --> B{弾数チェック}
+    B -->|上限未満| C[弾を追加]
+    B -->|上限到達| D[最古弾削除]
+    D --> E[新弾追加]
+    C --> F[弾幕継続]
+    E --> F
+    
+    subgraph FIFO["FIFO管理"]
+        G[弾リスト<br/>Index 0: 最古<br/>Index N: 最新]
+        H[削除: RemoveAt(0)]
+        I[追加: Add(bullet)]
+    end
+```
+
+#### 2. コア実装
+
+##### BulletMlPlayer.cs
+```csharp
+[SerializeField] private int m_MaxBullets = 1000;
+
+private void AddBullet(BulletMLBullet _bullet)
+{
+    if (m_ListActiveBullets.Count >= m_MaxBullets)
+    {
+        // FIFO方式：最も古い弾を削除
+        RemoveBulletAt(0);
+        if (m_EnableDebugLog)
+        {
+            Debug.LogWarning($"弾数上限到達。最古の弾を削除しました。(上限: {m_MaxBullets})");
+        }
+    }
+    
+    m_ListActiveBullets.Add(_bullet);
+}
+```
+
+##### 削除処理の最適化
+```csharp
+private void RemoveBulletAt(int _index)
+{
+    if (_index >= 0 && _index < m_ListActiveBullets.Count)
+    {
+        m_ListActiveBullets.RemoveAt(_index);
+        
+        // GameObjectプールへ返却
+        if (_index < m_ListBulletObjects.Count)
+        {
+            var bulletObj = m_ListBulletObjects[_index];
+            m_ListBulletObjects.RemoveAt(_index);
+            
+            if (bulletObj != null)
+            {
+                ReturnBulletObject(bulletObj);
+            }
+        }
+    }
+}
+```
+
+### 計算仕様
+
+#### 弾数管理アルゴリズム
+1. **追加時チェック**: `Count >= MaxBullets`
+2. **FIFO削除**: `RemoveAt(0)` で最古弾削除
+3. **新弾追加**: `Add(newBullet)` で最新弾追加
+4. **同期処理**: 弾データとGameObjectを同期削除
+
+#### パフォーマンス特性
+- **時間計算量**: O(1) - インデックス0での削除は高速
+- **空間計算量**: O(MaxBullets) - 一定メモリ使用量
+- **GC負荷**: 最小化（オブジェクトプール活用）
+
+### API設計
+
+#### パブリックメソッド
+```csharp
+/// <summary>
+/// 最大弾数を設定（テスト用・実行時変更用）
+/// </summary>
+public void SetMaxBullets(int maxBullets)
+{
+    m_MaxBullets = maxBullets;
+}
+```
+
+#### デバッグサポート
+```csharp
+/// <summary>
+/// デバッグログの有効/無効を設定
+/// </summary>
+public void SetEnableDebugLog(bool enable)
+{
+    m_EnableDebugLog = enable;
+}
+```
+
+### 実装上の考慮事項
+
+#### 1. GameObject同期削除
+弾データ削除時は対応するGameObjectも同期削除し、メモリリークを防止。
+
+#### 2. オブジェクトプール連携
+削除されたGameObjectはプールに返却し、再利用によりGC負荷を軽減。
+
+#### 3. シューター弾の扱い
+非表示のシューター弾も上限にカウントされ、適切にFIFO削除対象となる。
+
+#### 4. エラーハンドリング
+無効なインデックスでの削除要求に対する安全な処理を実装。
 
 ---
 

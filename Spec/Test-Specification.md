@@ -6,7 +6,7 @@
 テスト駆動開発（TDD）によって100%の信頼性を保証します。
 
 **テストフレームワーク**: Unity Test Framework  
-**テストカバレッジ**: 31個のテストクラス、242+個のテストケース  
+**テストカバレッジ**: 32個のテストクラス、247+個のテストケース  
 **更新日**: 2025年8月
 
 ---
@@ -789,6 +789,32 @@ Assert.AreEqual(135f, directionChange.TargetValue); // 90+45=135
 | `GetVelocityVector()` with multiplier | 1 | 100% |
 | **合計** | **2** | **100%** |
 
+#### FIFO弾数上限機能テストカバレッジ
+
+| メソッド | テストケース数 | カバレッジ |
+|---------|-------------|----------|
+| `SetMaxBullets()` | 5 | 100% |
+| `AddBullet()` FIFO削除処理 | 5 | 100% |
+| `RemoveBulletAt()` 最古弾削除 | 5 | 100% |
+| デバッグログ出力 | 3 | 100% |
+| 複数弾同時処理 | 1 | 100% |
+| 正常動作確認 | 1 | 100% |
+| **合計** | **5** | **100%** |
+
+##### BulletMLMaxBulletsTests.cs の詳細
+
+**テストクラス**: `BulletMLMaxBulletsTests`  
+**テストメソッド数**: 5個  
+**総アサーション数**: 15個以上
+
+| テストメソッド | 目的 | 検証内容 |
+|--------------|------|----------|
+| `MaxBullets_RemovesOldestBullet_WhenLimitReached` | FIFO削除動作 | 上限到達時の最古弾削除確認 |
+| `MaxBullets_LogsWarning_WhenLimitReached` | デバッグログ | 上限到達時のログ出力確認 |
+| `MaxBullets_NoLogging_WhenDebugLogDisabled` | ログ無効化 | デバッグログ無効時の動作確認 |
+| `MaxBullets_NormalOperation_WhenUnderLimit` | 正常動作 | 上限未満での通常動作確認 |
+| `MaxBullets_HandlesMultipleSimultaneousBullets_WhenLimitReached` | 複数弾処理 | 同時複数弾での上限処理確認 |
+
 ---
 
 ## 🚀 テスト改善計画
@@ -797,6 +823,7 @@ Assert.AreEqual(135f, directionChange.TargetValue); // 90+45=135
 - [x] ループ機能テスト実装（13個のテストケース追加）
 - [x] wait倍率機能テスト実装（6個のテストケース追加）
 - [x] 角度オフセット機能テスト実装（8個のテストケース追加）
+- [x] FIFO弾数上限機能テスト実装（5個のテストケース追加）
 - [ ] PlayModeテストの拡充
 - [ ] パフォーマンステストの自動化
 - [ ] カバレッジ100%達成
