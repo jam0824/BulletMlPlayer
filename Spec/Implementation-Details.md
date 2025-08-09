@@ -1488,6 +1488,110 @@ public void ClearAllBullets()
 
 ---
 
+## 🛑 弾幕停止機能実装詳細
+
+### 概要
+
+弾幕停止機能（StopBulletML）は、実行中の弾幕を外部から安全に停止する機能です。  
+全弾の削除、ループの停止、状態のリセットを確実に行い、再開始可能な状態を維持します。
+
+### 実装アーキテクチャ
+
+```mermaid
+graph TD
+    A[StopBulletML 呼び出し] --> B[停止フラグ設定]
+    B --> C[全弾削除]
+    C --> D[ループ停止]
+    D --> E[シューター弾クリア]
+    E --> F[状態リセット]
+    F --> G[完了ログ出力]
+    
+    H[StartBulletML 呼び出し] --> I[停止フラグクリア]
+    I --> J[通常の開始処理]
+```
+
+### 核心技術
+
+#### 1. 停止フラグシステム
+```csharp
+private bool m_IsStopped = false; // StopBulletMLで停止されたかのフラグ
+
+public void StopBulletML()
+{
+    m_IsStopped = true;  // 停止フラグを設定
+    // ... 他の停止処理
+}
+```
+
+#### 2. ループ阻止メカニズム
+```csharp
+// ループが有効な場合の処理（停止されていない場合のみ）
+if (m_EnableLoop && m_IsXmlExecutionCompleted && !m_IsStopped)
+{
+    // ループ処理実行
+}
+
+// 即座ループでも停止フラグチェック
+if (m_EnableLoop && m_LoopDelayFrames == 0 && !m_IsStopped)
+{
+    StartTopAction();
+}
+```
+
+#### 3. 状態の完全リセット
+```csharp
+public void StopBulletML()
+{
+    ClearAllBullets();            // 全弾削除
+    m_IsStopped = true;           // 停止フラグ設定
+    m_IsXmlExecutionCompleted = true;  // XML実行完了フラグ
+    m_LoopWaitFrameCounter = 0;   // ループカウンターリセット
+    m_ShooterBullet = null;       // シューター弾クリア
+}
+```
+
+#### 4. 再開始時の自動復旧
+```csharp
+public void StartTopAction()
+{
+    m_IsXmlExecutionCompleted = false;
+    m_LoopWaitFrameCounter = 0;
+    m_IsStopped = false;  // 停止フラグをクリア（再開始時）
+    // ... 通常の開始処理
+}
+```
+
+### 使用例
+
+#### 基本的な停止・再開
+```csharp
+// 弾幕停止
+bulletMLPlayer.StopBulletML();
+// → 全弾削除、ループ停止、再開始可能状態
+
+// 弾幕再開始
+bulletMLPlayer.StartBulletML();
+// → 停止フラグクリア、通常開始
+```
+
+#### UIとの統合
+```csharp
+public class BulletMLController : MonoBehaviour
+{
+    [SerializeField] private BulletMlPlayer m_Player;
+    [SerializeField] private Button m_StartButton;
+    [SerializeField] private Button m_StopButton;
+    
+    void Start()
+    {
+        m_StartButton.onClick.AddListener(() => m_Player.StartBulletML());
+        m_StopButton.onClick.AddListener(() => m_Player.StopBulletML());
+    }
+}
+```
+
+----
+
 ## 🔮 今後の拡張
 
 ### 短期計画
@@ -1497,6 +1601,7 @@ public void ClearAllBullets()
 - [x] 弾速倍率機能実装
 - [x] FIFO弾数上限処理実装
 - [x] OnDestroy()クリーンアップ実装 - 完全なリソース管理とメモリリーク防止
+- [x] StopBulletML()実装 - 外部からの弾幕停止制御とループ阻止機能
 - [ ] WebGL対応最適化
 - [ ] モバイル向けパフォーマンス調整
 - [ ] VFXGraph統合

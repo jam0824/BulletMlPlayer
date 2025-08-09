@@ -31,6 +31,7 @@ UnityでBulletML弾幕パターンを実行するための完全なシステム�
 - ✅ **弾速倍率調整**: インスペクターから設定可能な全弾の速度倍率
 - ✅ **FIFO弾数上限処理**: 上限到達時に古い弾から自動削除し、パフォーマンスを最適化
 - ✅ **安全なリソース管理**: OnDestroy()での完全なクリーンアップとメモリリーク防止
+- ✅ **弾幕制御API**: StartBulletML()とStopBulletML()による外部からの簡単な開始・停止制御
 
 ## 🚀 クイックスタート
 
@@ -67,7 +68,8 @@ UnityでBulletML弾幕パターンを実行するための完全なシステム�
 ```csharp
 // スクリプトから実行
 bulletMLPlayer.LoadBulletML(xmlContent);
-bulletMLPlayer.StartBulletML();
+bulletMLPlayer.StartBulletML();   // 弾幕開始
+bulletMLPlayer.StopBulletML();    // 弾幕停止
 ```
 
 ### 2. 基本的な使い方
@@ -477,6 +479,27 @@ public void SetMaxBullets(int maxBullets)
 
 // 全ての弾をクリア
 public void ClearAllBullets()
+```
+
+#### 弾幕制御の使用例
+```csharp
+// 基本的な開始・停止
+bulletMLPlayer.StartBulletML();  // 弾幕開始
+bulletMLPlayer.StopBulletML();   // 弾幕停止（全弾削除、ループ停止）
+
+// UIボタンから制御
+startButton.onClick.AddListener(() => bulletMLPlayer.StartBulletML());
+stopButton.onClick.AddListener(() => bulletMLPlayer.StopBulletML());
+
+// キーボード制御
+void Update() {
+    if (Input.GetKeyDown(KeyCode.Space)) bulletMLPlayer.StartBulletML();
+    if (Input.GetKeyDown(KeyCode.Escape)) bulletMLPlayer.StopBulletML();
+}
+
+// 停止後の再開始
+bulletMLPlayer.StopBulletML();   // 一旦停止
+bulletMLPlayer.StartBulletML();  // 再び開始（設定は保持される）
 ```
 
 ### BulletMLBullet

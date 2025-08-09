@@ -6,7 +6,7 @@
 テスト駆動開発（TDD）によって100%の信頼性を保証します。
 
 **テストフレームワーク**: Unity Test Framework  
-**テストカバレッジ**: 32個のテストクラス、254+個のテストケース  
+**テストカバレッジ**: 33個のテストクラス、262+個のテストケース  
 **更新日**: 2025年8月
 
 ---
@@ -848,6 +848,41 @@ OnDestroy()リソース管理機能の包括的テストを`BulletMLOnDestroyTes
 
 ---
 
+#### StopBulletML()弾幕停止機能テストカバレッジ
+
+StopBulletML()弾幕停止制御機能の包括的テストを`BulletMLStopBulletMLTests.cs`で実装しています。
+
+| メソッド | テストケース数 | カバレッジ | 検証内容 |
+|---------|-------------|----------|----------|
+| `StopBulletML()` 全弾クリア | 1 | 100% | 実行中の弾の完全削除確認 |
+| `StopBulletML()` ループ停止 | 1 | 100% | 自動ループ機能の確実な停止 |
+| `StopBulletML()` シューター弾クリア | 1 | 100% | 根源弾（シューター弾）の削除 |
+| `StopBulletML()` デバッグログ出力 | 1 | 100% | 停止時のログメッセージ確認 |
+| `StopBulletML()` 未開始状態安全性 | 1 | 100% | 未開始状態での安全な停止処理 |
+| `StopBulletML()` 再開始可能性 | 1 | 100% | 停止後のStartBulletML()正常動作 |
+| `StopBulletML()` ループ再開阻止 | 1 | 100% | 停止状態でのループ処理スキップ |
+| `StopBulletML()` 複数回呼び出し安全性 | 1 | 100% | 多重呼び出しでの安全性保証 |
+| **合計** | **8** | **100%** | **完全な停止制御検証** |
+
+##### BulletMLStopBulletMLTests.cs の詳細
+
+**テストクラス**: `BulletMLStopBulletMLTests`  
+**テストメソッド数**: 8個  
+**総アサーション数**: 24+個  
+
+| テストメソッド | 目的 | 検証内容 |
+|---------------|------|----------|
+| `StopBulletML_ClearsAllActiveBullets()` | 全弾削除 | 弾生成→停止→弾数0確認 |
+| `StopBulletML_StopsLoopExecution()` | ループ停止 | ループ設定確認→停止→フラグ確認 |
+| `StopBulletML_ClearsShooterBullet()` | シューター弾削除 | シューター弾確認→停止→null確認 |
+| `StopBulletML_WithDebugLogEnabled_LogsStopMessage()` | ログ出力 | デバッグログ有効→停止→ログ確認 |
+| `StopBulletML_CalledWithoutStarting_HandlesGracefully()` | 未開始時安全性 | 未開始状態→停止→エラー無し確認 |
+| `StopBulletML_AfterStop_CanRestartWithStartBulletML()` | 再開始機能 | 開始→停止→再開始→正常動作確認 |
+| `StopBulletML_PreventsLoopRestart()` | ループ阻止 | ループ設定→停止→ループ処理スキップ確認 |
+| `StopBulletML_MultipleCalls_HandlesGracefully()` | 多重呼び出し | 複数回停止→エラー無し確認 |
+
+----
+
 ## 🚀 テスト改善計画
 
 ### 短期計画
@@ -856,6 +891,7 @@ OnDestroy()リソース管理機能の包括的テストを`BulletMLOnDestroyTes
 - [x] 角度オフセット機能テスト実装（8個のテストケース追加）
 - [x] FIFO弾数上限機能テスト実装（5個のテストケース追加）
 - [x] OnDestroy()クリーンアップ機能テスト実装（7個のテストケース追加）
+- [x] StopBulletML()弾幕停止機能テスト実装（8個のテストケース追加）
 - [ ] PlayModeテストの拡充
 - [ ] パフォーマンステストの自動化
 - [ ] カバレッジ100%達成

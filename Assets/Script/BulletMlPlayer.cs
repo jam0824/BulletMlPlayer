@@ -60,6 +60,7 @@ public class BulletMlPlayer : MonoBehaviour
     // ループ管理
     private bool m_IsXmlExecutionCompleted = false;
     private int m_LoopWaitFrameCounter = 0;
+    private bool m_IsStopped = false; // StopBulletMLで停止されたかのフラグ
 
     public BulletMLDocument Document => m_Document;
     public Vector3 PlayerPosition => m_CurrentPlayerPosition;
@@ -248,6 +249,61 @@ public class BulletMlPlayer : MonoBehaviour
     }
 
     /// <summary>
+    /// 外部から弾幕を実行する
+    /// </summary>
+    public void StartBulletML()
+    {
+        // システムを初期化
+        if (m_Executor == null)
+        {
+            InitializeSystem();
+        }
+
+        // XMLが設定されている場合は読み込み
+        if (m_BulletMLXml != null)
+        {
+            LoadBulletML(m_BulletMLXml.text);
+        }
+        else if (m_Document == null)
+        {
+            Debug.LogError("BulletML XMLが設定されていません");
+            return;
+        }
+
+        // トップアクションを開始
+        StartTopAction();
+        
+        if (m_EnableDebugLog)
+        {
+            Debug.Log("BulletMLを開始しました");
+        }
+    }
+
+    /// <summary>
+    /// 外部から弾幕を停止する
+    /// </summary>
+    public void StopBulletML()
+    {
+        // 全ての弾をクリア
+        ClearAllBullets();
+        
+        // 停止フラグを設定
+        m_IsStopped = true;
+        
+        // ループを停止
+        m_IsXmlExecutionCompleted = true;
+        m_LoopWaitFrameCounter = 0;
+        
+        // シューター弾もクリア
+        m_ShooterBullet = null;
+        
+        if (m_EnableDebugLog)
+        {
+            Debug.Log("BulletMLを停止しました");
+        }
+    }
+
+    /// <summary>
     /// トップアクションを開始する
     /// </summary>
     public void StartTopAction()
@@ -268,6 +324,7 @@ public class BulletMlPlayer : MonoBehaviour
         // ループ状態をリセット
         m_IsXmlExecutionCompleted = false;
         m_LoopWaitFrameCounter = 0;
+        m_IsStopped = false; // 停止フラグをクリア
 
         // 初期弾を作成（シューターなので非表示）
         // シューター位置を決定
@@ -558,8 +615,8 @@ public class BulletMlPlayer : MonoBehaviour
                 }
             }
             
-            // 遅延フレーム0の場合は即座にループ開始
-            if (m_EnableLoop && m_LoopDelayFrames == 0)
+            // 遅延フレーム0の場合は即座にループ開始（停止されていない場合のみ）
+            if (m_EnableLoop && m_LoopDelayFrames == 0 && !m_IsStopped)
             {
                 if (m_EnableDebugLog)
                 {
@@ -573,8 +630,8 @@ public class BulletMlPlayer : MonoBehaviour
             return;
         }
 
-        // ループが有効な場合の処理
-        if (m_EnableLoop && m_IsXmlExecutionCompleted)
+        // ループが有効な場合の処理（停止されていない場合のみ）
+        if (m_EnableLoop && m_IsXmlExecutionCompleted && !m_IsStopped)
         {
             m_LoopWaitFrameCounter++;
 
