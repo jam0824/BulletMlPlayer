@@ -6,7 +6,7 @@
 テスト駆動開発（TDD）によって100%の信頼性を保証します。
 
 **テストフレームワーク**: Unity Test Framework  
-**テストカバレッジ**: 32個のテストクラス、247+個のテストケース  
+**テストカバレッジ**: 32個のテストクラス、254+個のテストケース  
 **更新日**: 2025年8月
 
 ---
@@ -815,6 +815,37 @@ Assert.AreEqual(135f, directionChange.TargetValue); // 90+45=135
 | `MaxBullets_NormalOperation_WhenUnderLimit` | 正常動作 | 上限未満での通常動作確認 |
 | `MaxBullets_HandlesMultipleSimultaneousBullets_WhenLimitReached` | 複数弾処理 | 同時複数弾での上限処理確認 |
 
+#### OnDestroy()クリーンアップ機能テストカバレッジ
+
+OnDestroy()リソース管理機能の包括的テストを`BulletMLOnDestroyTests.cs`で実装しています。
+
+| メソッド | テストケース数 | カバレッジ | 検証内容 |
+|---------|-------------|----------|----------|
+| `OnDestroy()` アクティブ弾クリア | 1 | 100% | 弾が存在する状態での削除処理 |
+| `OnDestroy()` プール弾クリア | 1 | 100% | プールされた弾オブジェクトの削除 |
+| `OnDestroy()` デバッグログ無効時 | 1 | 100% | ログ無効でも正常動作することを確認 |
+| `OnDestroy()` 初期化前削除安全性 | 1 | 100% | 初期化されていない状態での安全な削除 |
+| `OnDestroy()` 複数弾処理 | 1 | 100% | 大量の弾がある状態での削除処理 |
+| `OnDestroy()` 完全クリーンアップ | 1 | 100% | 全体的なクリーンアップシーケンス検証 |
+| `OnDestroy()` ログ出力確認 | 1 | 100% | クリーンアップログの正常出力確認 |
+| **合計** | **7** | **100%** | **完全なリソース管理検証** |
+
+##### BulletMLOnDestroyTests.cs の詳細
+
+**テストクラス**: `BulletMLOnDestroyTests`  
+**テストメソッド数**: 7個  
+**総アサーション数**: 21+個  
+
+| テストメソッド | 目的 | 検証内容 |
+|---------------|------|----------|
+| `OnDestroy_ClearsActiveBullets()` | アクティブ弾削除 | 弾生成→削除→弾数確認 |
+| `OnDestroy_ClearsPooledBulletObjects()` | プール弾削除 | プール生成→削除→プール状態確認 |
+| `OnDestroy_WorksWithoutDebugLog()` | ログ無効時動作 | デバッグログ無効で正常動作確認 |
+| `OnDestroy_SafeWithUninitializedPlayer()` | 初期化前削除安全性 | 初期化前削除でエラー無し確認 |
+| `OnDestroy_HandlesMultipleBullets()` | 複数弾処理 | 大量弾→削除→正常処理確認 |
+| `OnDestroy_ExecutesCompleteCleanupSequence()` | 完全クリーンアップ | 全体的なクリーンアップ流れ確認 |
+| `OnDestroy_LogsCleanupMessages()` | ログ出力確認 | クリーンアップログの機能確認 |
+
 ---
 
 ## 🚀 テスト改善計画
@@ -824,6 +855,7 @@ Assert.AreEqual(135f, directionChange.TargetValue); // 90+45=135
 - [x] wait倍率機能テスト実装（6個のテストケース追加）
 - [x] 角度オフセット機能テスト実装（8個のテストケース追加）
 - [x] FIFO弾数上限機能テスト実装（5個のテストケース追加）
+- [x] OnDestroy()クリーンアップ機能テスト実装（7個のテストケース追加）
 - [ ] PlayModeテストの拡充
 - [ ] パフォーマンステストの自動化
 - [ ] カバレッジ100%達成

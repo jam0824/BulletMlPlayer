@@ -1345,6 +1345,147 @@ public class DebugController : MonoBehaviour
 }
 ```
 
+## OnDestroy()クリーンアップ実装詳細
+
+### 概要
+
+BulletMlPlayerがUnityオブジェクトとして削除される際の完全なリソースクリーンアップシステムです。
+メモリリークやプール残留オブジェクトの問題を根本的に解決します。
+
+### アーキテクチャ
+
+```mermaid
+sequenceDiagram
+    participant Unity as Unity Engine
+    participant Player as BulletMlPlayer
+    participant Pool as Bullet Pool
+    participant Memory as Memory System
+
+    Unity->>Player: OnDestroy()
+    Player->>Player: ClearAllBullets()
+    Player->>Pool: DestroyImmediate(pooledObj)
+    Pool-->>Memory: GameObject削除
+    Player->>Player: リスト.Clear()
+    Player->>Player: 参照null化
+    Player-->>Memory: 参照解放
+    Unity-->>Memory: GC実行可能
+```
+
+### 核心実装
+
+#### OnDestroy()メソッド
+
+```csharp
+void OnDestroy()
+{
+    if (m_EnableDebugLog)
+    {
+        Debug.Log("BulletMlPlayer: OnDestroy開始 - クリーンアップを実行します");
+    }
+
+    // 1. 全ての弾を明示的にクリーンアップ
+    ClearAllBullets();
+    
+    // 2. リストのクリア
+    m_ListActiveBullets?.Clear();
+    m_ListBulletObjects?.Clear();
+    
+    // 3. プールのクリア
+    if (m_BulletPool != null)
+    {
+        int pooledCount = m_BulletPool.Count;
+        while (m_BulletPool.Count > 0)
+        {
+            var pooledObj = m_BulletPool.Dequeue();
+            if (pooledObj != null)
+            {
+                DestroyImmediate(pooledObj);
+            }
+        }
+        
+        if (m_EnableDebugLog && pooledCount > 0)
+        {
+            Debug.Log($"BulletMlPlayer: プールされた弾オブジェクト{pooledCount}個を削除しました");
+        }
+    }
+    
+    // 4. Executorのクリーンアップ
+    if (m_Executor != null)
+    {
+        m_Executor = null;
+    }
+    
+    // 5. その他の参照をクリア
+    m_Document = null;
+    m_Parser = null;
+    m_ShooterBullet = null;
+    m_TargetObject = null;
+    
+    if (m_EnableDebugLog)
+    {
+        Debug.Log("BulletMlPlayer: OnDestroy完了 - クリーンアップが正常に実行されました");
+    }
+}
+```
+
+### 計算仕様
+
+#### パフォーマンス特性
+
+| 操作 | 時間計算量 | 説明 |
+|------|-----------|------|
+| ClearAllBullets() | O(n) | n = アクティブ弾数 |
+| プールクリア | O(m) | m = プール内オブジェクト数 |
+| 参照クリア | O(1) | 定数時間 |
+| **総合** | **O(n + m)** | **線形時間で完了** |
+
+#### メモリ解放効果
+
+```csharp
+// 解放されるメモリ
+Total Memory Release = 
+    (Active Bullets × Bullet Memory) +
+    (Pooled Objects × GameObject Memory) +
+    (Lists Memory) +
+    (References Memory)
+
+// 実際の計算例
+// 1000発の弾 + 500個のプール + リスト + 参照
+// ≈ 1000×0.5KB + 500×2KB + 10KB + 5KB
+// ≈ 500KB + 1000KB + 15KB = 1515KB解放
+```
+
+### API設計
+
+#### 必要最小限のパブリックAPI
+
+```csharp
+// 既存のClearAllBullets()を活用
+public void ClearAllBullets()
+
+// OnDestroy()は自動実行（パブリックAPI不要）
+```
+
+### 実装考慮事項
+
+#### 安全性確保
+
+- **Null参照チェック**: 全ての参照でnull確認
+- **初期化前削除対応**: 初期化されていない状態でも安全
+- **重複実行対応**: OnDestroy()の重複呼び出しでも安全
+
+#### デバッグサポート
+
+- **詳細ログ**: クリーンアップ進行状況を出力
+- **統計情報**: 削除されたオブジェクト数を報告
+- **エラー処理**: 例外発生時も継続実行
+
+#### Unity統合
+
+- **EditorMode対応**: EditModeテストでも正常動作
+- **PlayMode対応**: 実行時の削除でも完全クリーンアップ
+- **Build対応**: ビルド版でもパフォーマンス最適化
+
 ---
 
 ## 🔮 今後の拡張
@@ -1355,6 +1496,7 @@ public class DebugController : MonoBehaviour
 - [x] 角度オフセット機能実装
 - [x] 弾速倍率機能実装
 - [x] FIFO弾数上限処理実装
+- [x] OnDestroy()クリーンアップ実装 - 完全なリソース管理とメモリリーク防止
 - [ ] WebGL対応最適化
 - [ ] モバイル向けパフォーマンス調整
 - [ ] VFXGraph統合

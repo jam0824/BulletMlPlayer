@@ -30,6 +30,7 @@ UnityでBulletML弾幕パターンを実行するための完全なシステム�
 - ✅ **角度オフセット**: 全弾の角度に一定値を加算して弾幕の向きを統一的に調整
 - ✅ **弾速倍率調整**: インスペクターから設定可能な全弾の速度倍率
 - ✅ **FIFO弾数上限処理**: 上限到達時に古い弾から自動削除し、パフォーマンスを最適化
+- ✅ **安全なリソース管理**: OnDestroy()での完全なクリーンアップとメモリリーク防止
 
 ## 🚀 クイックスタート
 
@@ -473,6 +474,9 @@ public void SetSpeedMultiplier(float multiplier)
 
 // 最大弾数を設定（FIFO削除）
 public void SetMaxBullets(int maxBullets)
+
+// 全ての弾をクリア
+public void ClearAllBullets()
 ```
 
 ### BulletMLBullet
@@ -517,11 +521,12 @@ public void SetSpeedMultiplier(float multiplier)
 ```
 
 ### テストカバレッジ
-- **EditModeテスト**: 28個のテストクラス、210+個のテストケース
+- **EditModeテスト**: 32個のテストクラス、247+個のテストケース
 - **XMLファイルテスト**: 実際のBulletMLファイルでの動作確認
 - **TDD品質保証**: テスト駆動開発による完全な機能実装
 - **カバレッジ**: コア機能100%、新機能（fireRef、sequence型）100%
 - **ホーミングレーザーテスト**: 複雑な弾幕パターンの包括的検証
+- **リソース管理テスト**: OnDestroy()クリーンアップ機能の詳細検証
 
 ## 🎨 デバッグ機能
 
@@ -586,6 +591,15 @@ A: 以下を試してください：
 - Bullet Pool Sizeを調整
 - Enable Debug Logを無効化
 - 不要な弾を適切にVanishで消去
+- Max Bulletsを調整してメモリ使用量を制限
+```
+
+#### Q: メモリリークが発生する
+```
+A: 以下を確認してください：
+- BulletMlPlayerオブジェクトが正常に削除されているか
+- OnDestroy()が呼ばれているか（デバッグログで確認）
+- 長時間実行時に弾数が制限されているか
 ```
 
 ### 詳細な技術情報
@@ -648,10 +662,13 @@ Script/
 │       ├── BulletMLBulletRefTests.cs # bulletRef専用テスト
 │       ├── BulletMLComplexExpressionTests.cs # 複雑数式評価テスト
 │       ├── BulletMLErrorHandlingTests.cs # 包括的エラーハンドリングテスト
+│       ├── BulletMLSpeedMultiplierTests.cs # 弾速倍率機能テスト
+│       ├── BulletMLMaxBulletsTests.cs # FIFO弾数上限機能テスト
+│       ├── BulletMLOnDestroyTests.cs # OnDestroy()クリーンアップ機能テスト
 │       ├── BulletMLIntegrationTests.cs
 │       ├── BulletMLCirclePatternTests.cs
 │       ├── BulletMLControlCommandTests.cs
-│       └── ...（28個のテストクラス）
+│       └── ...（32個のテストクラス）
 ```
 
 ## 🎮 実装例

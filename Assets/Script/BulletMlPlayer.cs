@@ -740,6 +740,54 @@ public class BulletMlPlayer : MonoBehaviour
     
     void OnDestroy()
     {
+        if (m_EnableDebugLog)
+        {
+            Debug.Log("BulletMlPlayer: OnDestroy開始 - クリーンアップを実行します");
+        }
+
+        // 全ての弾を明示的にクリーンアップ
+        ClearAllBullets();
+        
+        // リストのクリア
+        m_ListActiveBullets?.Clear();
+        m_ListBulletObjects?.Clear();
+        
+        // プールのクリア
+        if (m_BulletPool != null)
+        {
+            int pooledCount = m_BulletPool.Count;
+            while (m_BulletPool.Count > 0)
+            {
+                var pooledObj = m_BulletPool.Dequeue();
+                if (pooledObj != null)
+                {
+                    DestroyImmediate(pooledObj);
+                }
+            }
+            
+            if (m_EnableDebugLog && pooledCount > 0)
+            {
+                Debug.Log($"BulletMlPlayer: プールされた弾オブジェクト{pooledCount}個を削除しました");
+            }
+        }
+        
+        // Executorのクリーンアップ
+        if (m_Executor != null)
+        {
+            // Executorが保持する参照をクリア（将来的な拡張用）
+            m_Executor = null;
+        }
+        
+        // その他の参照をクリア
+        m_Document = null;
+        m_Parser = null;
+        m_ShooterBullet = null;
+        m_TargetObject = null;
+        
+        if (m_EnableDebugLog)
+        {
+            Debug.Log("BulletMlPlayer: OnDestroy完了 - クリーンアップが正常に実行されました");
+        }
     }
     
     void OnApplicationQuit()
