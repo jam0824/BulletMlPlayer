@@ -40,6 +40,10 @@ public class BulletMlPlayer : MonoBehaviour
     [Header("デバッグ設定")]
     [SerializeField] private bool m_EnableDebugLog = false;
     [SerializeField] private int m_MaxBullets = 1000;
+    
+    [Header("弾の独立性設定")]
+    [SerializeField, Tooltip("弾を親オブジェクトから独立させる（ワールド空間に配置）")] 
+    private bool m_BulletIndependence = true;
 
     private BulletMLDocument m_Document;
     private BulletMLParser m_Parser;
@@ -60,6 +64,7 @@ public class BulletMlPlayer : MonoBehaviour
     public BulletMLDocument Document => m_Document;
     public Vector3 PlayerPosition => m_CurrentPlayerPosition;
     public float RankValue => m_RankValue;
+    public CoordinateSystem CoordinateSystem => m_CoordinateSystem;
     
     /// <summary>
     /// アクティブな弾のリストを取得（デバッグ用）
@@ -83,6 +88,22 @@ public class BulletMlPlayer : MonoBehaviour
     public void SetEnableDebugLog(bool enable)
     {
         m_EnableDebugLog = enable;
+    }
+    
+    /// <summary>
+    /// 弾の独立性を設定する（テスト用）
+    /// </summary>
+    public void SetBulletIndependence(bool independence)
+    {
+        m_BulletIndependence = independence;
+    }
+    
+    /// <summary>
+    /// 弾の独立性設定を取得する（テスト用）
+    /// </summary>
+    public bool GetBulletIndependence()
+    {
+        return m_BulletIndependence;
     }
 
     /// <summary>
@@ -410,20 +431,53 @@ public class BulletMlPlayer : MonoBehaviour
     /// </summary>
     private GameObject GetBulletObject()
     {
+        GameObject bulletObj;
+        
         if (m_BulletPool.Count > 0)
         {
-            return m_BulletPool.Dequeue();
+            bulletObj = m_BulletPool.Dequeue();
+            
+            // 独立性設定に応じて親子関係を更新
+            if (m_BulletIndependence)
+            {
+                bulletObj.transform.SetParent(null); // ワールド空間に配置
+            }
+            else
+            {
+                bulletObj.transform.SetParent(transform); // 従来通り親オブジェクトの子に
+            }
+            
+            return bulletObj;
         }
 
         if (m_BulletPrefab != null)
         {
-            return Instantiate(m_BulletPrefab, transform);
+            if (m_BulletIndependence)
+            {
+                // ワールド空間に配置（親なし）
+                bulletObj = Instantiate(m_BulletPrefab);
+            }
+            else
+            {
+                // 従来通り親オブジェクトの子として配置
+                bulletObj = Instantiate(m_BulletPrefab, transform);
+            }
+            return bulletObj;
         }
 
         // デフォルトの弾オブジェクト
-        var bulletObj = GameObject.CreatePrimitive(PrimitiveType.Sphere);
+        bulletObj = GameObject.CreatePrimitive(PrimitiveType.Sphere);
         bulletObj.transform.localScale = Vector3.one * 0.1f;
-        bulletObj.transform.SetParent(transform);
+        
+        if (m_BulletIndependence)
+        {
+            bulletObj.transform.SetParent(null); // ワールド空間に配置
+        }
+        else
+        {
+            bulletObj.transform.SetParent(transform); // 従来通り親オブジェクトの子に
+        }
+        
         return bulletObj;
     }
 
@@ -450,6 +504,13 @@ public class BulletMlPlayer : MonoBehaviour
                 // 弾を削除
                 RemoveBulletAt(i);
                 continue;
+            }
+
+            // シューター弾の位置を親オブジェクトの現在位置に同期
+            if (bullet == m_ShooterBullet && !bullet.IsVisible)
+            {
+                Vector3 currentShooterPosition = GetShooterPosition();
+                bullet.SetPosition(currentShooterPosition);
             }
 
             // アクションを実行
@@ -616,6 +677,11 @@ public class BulletMlPlayer : MonoBehaviour
         {
             m_Executor.SetCoordinateSystem(_coordinateSystem);
         }
+        
+        if (m_EnableDebugLog)
+        {
+            Debug.Log($"座標系を設定しました: {_coordinateSystem}");
+        }
     }
 
     /// <summary>
@@ -740,53 +806,77 @@ public class BulletMlPlayer : MonoBehaviour
     
     void OnDestroy()
     {
-        if (m_EnableDebugLog)
+        try
         {
-            Debug.Log("BulletMlPlayer: OnDestroy開始 - クリーンアップを実行します");
-        }
-
-        // 全ての弾を明示的にクリーンアップ
-        ClearAllBullets();
-        
-        // リストのクリア
-        m_ListActiveBullets?.Clear();
-        m_ListBulletObjects?.Clear();
-        
-        // プールのクリア
-        if (m_BulletPool != null)
-        {
-            int pooledCount = m_BulletPool.Count;
-            while (m_BulletPool.Count > 0)
+            if (m_EnableDebugLog)
             {
-                var pooledObj = m_BulletPool.Dequeue();
-                if (pooledObj != null)
+                Debug.Log("BulletMlPlayer: OnDestroy開始 - クリーンアップを実行します");
+            }
+
+            // 全ての弾を明示的にクリーンアップ
+            ClearAllBullets();
+            
+            // リストのクリア
+            m_ListActiveBullets?.Clear();
+            m_ListBulletObjects?.Clear();
+            
+            // プールのクリア（エラー処理強化）
+            if (m_BulletPool != null)
+            {
+                int pooledCount = m_BulletPool.Count;
+                while (m_BulletPool.Count > 0)
                 {
-                    DestroyImmediate(pooledObj);
+                    try
+                    {
+                        var pooledObj = m_BulletPool.Dequeue();
+                        if (pooledObj != null && pooledObj)
+                        {
+                            // エディタ実行中とビルド実行中で適切な削除方法を選択
+                            if (Application.isPlaying)
+                            {
+                                Destroy(pooledObj);
+                            }
+                            else
+                            {
+                                DestroyImmediate(pooledObj);
+                            }
+                        }
+                    }
+                    catch (System.Exception ex)
+                    {
+                        // オブジェクト削除エラーを捕捉してログ出力
+                        Debug.LogWarning($"BulletMlPlayer: プールオブジェクト削除中にエラー: {ex.Message}");
+                    }
+                }
+                
+                if (m_EnableDebugLog && pooledCount > 0)
+                {
+                    Debug.Log($"BulletMlPlayer: プールされた弾オブジェクト{pooledCount}個を削除しました");
                 }
             }
             
-            if (m_EnableDebugLog && pooledCount > 0)
+            // Executorのクリーンアップ（コールバックも安全にクリア）
+            if (m_Executor != null)
             {
-                Debug.Log($"BulletMlPlayer: プールされた弾オブジェクト{pooledCount}個を削除しました");
+                m_Executor.OnBulletCreated = null; // コールバック参照をクリア
+                m_Executor = null;
+            }
+            
+            // その他の参照をクリア
+            m_Document = null;
+            m_Parser = null;
+            m_ShooterBullet = null;
+            m_TargetObject = null;
+            
+            if (m_EnableDebugLog)
+            {
+                Debug.Log("BulletMlPlayer: OnDestroy完了 - クリーンアップが正常に実行されました");
             }
         }
-        
-        // Executorのクリーンアップ
-        if (m_Executor != null)
+        catch (System.Exception ex)
         {
-            // Executorが保持する参照をクリア（将来的な拡張用）
-            m_Executor = null;
-        }
-        
-        // その他の参照をクリア
-        m_Document = null;
-        m_Parser = null;
-        m_ShooterBullet = null;
-        m_TargetObject = null;
-        
-        if (m_EnableDebugLog)
-        {
-            Debug.Log("BulletMlPlayer: OnDestroy完了 - クリーンアップが正常に実行されました");
+            // OnDestroyでの例外は致命的なので、ログ出力のみ
+            Debug.LogError($"BulletMlPlayer: OnDestroy中に例外が発生: {ex.Message}");
         }
     }
     
