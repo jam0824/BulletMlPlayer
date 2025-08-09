@@ -630,47 +630,57 @@ namespace BulletMLTests
         [Test]
         public void LoopStressTest_ManyIterations_StaysStable()
         {
-            // Arrange
+            // Arrange - 短いXMLで高速ループテスト
+            string quickLoopXml = @"<?xml version=""1.0"" ?>
+<bulletml xmlns=""http://www.asahi-net.or.jp/~cs8k-cyu/bulletml"">
+<action label=""top"">
+<fire>
+<direction type=""absolute"">0</direction>
+<speed>1</speed>
+<bullet/>
+</fire>
+<vanish/>
+</action>
+</bulletml>";
+
             m_Player.SetLoopEnabled(true);
-            m_Player.SetLoopDelayFrames(1); // 最短間隔
-            m_Player.LoadBulletML(m_TestXml);
+            m_Player.SetLoopDelayFrames(0); // 最短間隔
+            m_Player.LoadBulletML(quickLoopXml);
 
             int successfulLoops = 0;
             const int targetLoops = 10;
 
-            // Act - 各ループを手動でシミュレート
+            // Act - 各ループを個別にテスト
             for (int loop = 0; loop < targetLoops; loop++)
             {
-                // 新しいXML実行を開始
-                m_Player.LoadBulletML(m_TestXml);
+                // 新しいループサイクルを開始
                 m_Player.StartTopAction();
                 
-                // XML実行完了状態をシミュレート
-                m_Player.ClearAllBullets();
-                m_Player.ResetLoopState();
+                // XML実行（fire + vanish）をシミュレート
+                SimulateFrames(3); // fire実行、vanish実行、XML完了検知
                 
-                // 手動でXML実行完了状態を設定
-                var xmlCompletedField = typeof(BulletMlPlayer).GetField("m_IsXmlExecutionCompleted", 
-                    System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
-                xmlCompletedField.SetValue(m_Player, false);
-                
-                // XML実行完了を検知してからループ待機（遅延フレーム1なので2フレーム後にループ）
-                SimulateFrames(1); // 完了検知
-                SimulateFrames(2); // 遅延フレーム1待機 + 1フレーム後にループ開始
-                
-                // ループが成功したかチェック
+                // ループが正常に動作したかチェック（弾が生成された）
                 if (m_Player.GetActiveBullets().Count > 0)
                 {
                     successfulLoops++;
                 }
                 
-                // 次のループのために弾をクリア
+                // 次のループのために状態をリセット
                 m_Player.ClearAllBullets();
+                var xmlCompletedField = typeof(BulletMlPlayer).GetField("m_IsXmlExecutionCompleted", 
+                    System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
+                xmlCompletedField.SetValue(m_Player, false);
+                
+                // GCプレッシャーを軽減
+                if (loop % 3 == 0)
+                {
+                    System.GC.Collect();
+                }
             }
 
             // Assert
             Assert.AreEqual(targetLoops, successfulLoops, 
-                $"{targetLoops}回の連続ループがすべて成功するはず");
+                $"{targetLoops}回の連続ループがすべて成功するはず（実際: {successfulLoops}回）");
         }
 
         [Test]

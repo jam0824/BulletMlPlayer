@@ -61,11 +61,24 @@ public class BulletMlPlayer : MonoBehaviour
     private bool m_IsXmlExecutionCompleted = false;
     private int m_LoopWaitFrameCounter = 0;
     private bool m_IsStopped = false; // StopBulletMLで停止されたかのフラグ
+    private bool m_IsStarted = false; // StartTopActionが呼ばれたかのフラグ
 
     public BulletMLDocument Document => m_Document;
     public Vector3 PlayerPosition => m_CurrentPlayerPosition;
     public float RankValue => m_RankValue;
     public CoordinateSystem CoordinateSystem => m_CoordinateSystem;
+    
+    /// <summary>
+    /// BulletMLが現在実行中かどうか
+    /// </summary>
+    public bool IsExecuting => m_Document != null && m_Executor != null && 
+                              m_Document.GetTopAction() != null && 
+                              m_IsStarted && !m_IsXmlExecutionCompleted && !m_IsStopped;
+    
+    /// <summary>
+    /// アクティブな弾が存在するかどうか
+    /// </summary>
+    public bool HasActiveBullets() => m_ListActiveBullets != null && m_ListActiveBullets.Count > 0;
     
     /// <summary>
     /// アクティブな弾のリストを取得（デバッグ用）
@@ -140,7 +153,19 @@ public class BulletMlPlayer : MonoBehaviour
         Debug.Log($"deltaTime: {deltaTime:F6}秒");
         Debug.Log($"現在のフレームレート: {currentFrameRate:F1} FPS");
         Debug.Log($"目標フレームレート: {targetFrameRate} FPS");
-        Debug.Log($"==================");
+        Debug.Log($"弾数: {m_ListActiveBullets?.Count ?? 0}");
+        Debug.Log($"=== Update最適化状態 ===");
+        Debug.Log($"IsExecuting: {IsExecuting}");
+        Debug.Log($"HasActiveBullets: {HasActiveBullets()}");
+        Debug.Log($"Update処理実行: {(IsExecuting || HasActiveBullets() ? "有効" : "スキップ")}");
+        Debug.Log($"=== 内部状態詳細 ===");
+        Debug.Log($"Document: {(m_Document != null ? "読み込み済み" : "未設定")}");
+        Debug.Log($"Executor: {(m_Executor != null ? "初期化済み" : "未初期化")}");
+        Debug.Log($"TopAction: {(m_Document?.GetTopAction() != null ? "存在" : "不存在")}");
+        Debug.Log($"IsStarted: {m_IsStarted}");
+        Debug.Log($"IsStopped: {m_IsStopped}");
+        Debug.Log($"XmlCompleted: {m_IsXmlExecutionCompleted}");
+        Debug.Log($"========================");
     }
 
     void Start()
@@ -162,15 +187,19 @@ public class BulletMlPlayer : MonoBehaviour
             ShowFrameInfo();
         }
         
-        UpdateBullets();
-        UpdateBulletObjects();
-        
-        // ターゲット位置を更新
-        UpdateTargetPosition();
-        
-        // プレイヤー位置を更新（座標系に応じて補正）
-        Vector3 effectivePlayerPosition = GetEffectivePlayerPosition();
-        m_Executor.SetTargetPosition(effectivePlayerPosition);
+        // BulletMLが実行中の場合のみ処理を実行
+        if (IsExecuting || HasActiveBullets())
+        {
+            UpdateBullets();
+            UpdateBulletObjects();
+            
+            // ターゲット位置を更新
+            UpdateTargetPosition();
+            
+            // プレイヤー位置を更新（座標系に応じて補正）
+            Vector3 effectivePlayerPosition = GetEffectivePlayerPosition();
+            m_Executor.SetTargetPosition(effectivePlayerPosition);
+        }
     }
 
     /// <summary>
@@ -183,6 +212,12 @@ public class BulletMlPlayer : MonoBehaviour
         m_ListActiveBullets = new List<BulletMLBullet>();
         m_ListBulletObjects = new List<GameObject>();
         m_BulletPool = new Queue<GameObject>();
+
+        // 実行状態フラグを初期化
+        m_IsStarted = false;
+        m_IsXmlExecutionCompleted = false;
+        m_IsStopped = false;
+        m_LoopWaitFrameCounter = 0;
 
         // 初期ターゲット位置を更新
         UpdateTargetPosition();
@@ -289,6 +324,7 @@ public class BulletMlPlayer : MonoBehaviour
         
         // 停止フラグを設定
         m_IsStopped = true;
+        m_IsStarted = false; // 実行開始フラグをクリア
         
         // ループを停止
         m_IsXmlExecutionCompleted = true;
@@ -325,6 +361,7 @@ public class BulletMlPlayer : MonoBehaviour
         m_IsXmlExecutionCompleted = false;
         m_LoopWaitFrameCounter = 0;
         m_IsStopped = false; // 停止フラグをクリア
+        m_IsStarted = true; // 実行開始フラグを設定
 
         // 初期弾を作成（シューターなので非表示）
         // シューター位置を決定
